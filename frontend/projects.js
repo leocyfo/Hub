@@ -52,7 +52,7 @@ const PROJECTS = [
     longDescription: "Découpe un gros projet en tâches organisées par statut (à faire / en cours / fait), avec priorité, échéance, étiquettes libres et sous-listes à cocher. Glisser-déposer pour réordonner ou changer de colonne, sélection multiple avec actions groupées, tri par priorité/échéance, archivage des tâches terminées et suivi du temps passé. Recherche à travers tous les projets à la fois depuis l'écran d'accueil. Les pages de notes ont un aperçu Markdown basique. Import/export JSON (sauvegarde, duplication de projet) et export CSV des tâches ; thème clair/sombre ; export/impression PDF du tableau.",
     tech: ['Node.js', 'Express', 'JS vanilla'],
     status: 'En développement actif',
-    repoUrl: null,
+    repoUrl: 'https://github.com/TRYMOX/PlanBoard',
     localCommand: 'node backend/server.js',
     localUrl: null,
     hostedPath: '/planboard/',
