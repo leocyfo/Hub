@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRYMOX — Projets</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hub-header">
+  <div class="hub-header-inner">
+    <div class="hub-brand"><span class="hub-logo-mark"></span>TRYMOX</div>
+    <div class="hub-avatar" title="TRYMOX">T</div>
+  </div>
+</header>
+
+<main class="hub-main">
+  <section class="hub-intro">
+    <h1>Mes projets</h1>
+    <p>Développeur — outils, expérimentations, projets perso. Un point d'entrée unique vers ce que je construis : certains tournent en local sur cette machine, d'autres sont encore des ébauches.</p>
+    <div class="hub-stats" id="hubStats">
+      <!-- généré par script.js à partir de projects.js -->
+    </div>
+  </section>
+
+  <section class="hub-panel">
+    <div class="hub-panel-header">
+      <h2>Projets</h2>
+    </div>
+    <div class="hub-filter-bar">
+      <input type="search" id="projectSearch" class="hub-filter-input"
+             placeholder="Rechercher (nom, techno)…" aria-label="Rechercher un projet">
+      <select id="statusFilter" class="hub-filter-select" aria-label="Filtrer par statut">
+        <option value="all">Tous les statuts</option>
+      </select>
+      <select id="hostedFilter" class="hub-filter-select" aria-label="Filtrer par hébergement">
+        <option value="all">Tous</option>
+        <option value="hosted">Hébergés ici</option>
+        <option value="external">Externes</option>
+      </select>
+    </div>
+    <div class="hub-grid" id="projectGrid">
+      <!-- généré par script.js à partir de projects.js -->
+    </div>
+    <p class="placeholder-text" id="projectGridEmpty" style="display:none;">Aucun projet ne correspond à ces critères.</p>
+  </section>
+
+  <section class="hub-panel hub-about">
+    <div class="hub-avatar hub-avatar-lg">T</div>
+    <div>
+      <h2>À propos</h2>
+      <p class="placeholder-text"><!-- TODO: courte bio --> À compléter : qui je suis, ce que je cherche (poste, freelance, curiosité), et comment me contacter.</p>
+      <div class="hub-contact-links" id="contactLinks"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="hub-footer">
+  <p>Fait en JS vanilla, sans framework — <span id="hubYear"></span></p>
+</footer>
+
+<div class="modal-overlay" id="projectModalOverlay">
+  <div class="modal modal-project">
+    <button type="button" class="modal-close" id="projectModalClose" aria-label="Fermer">×</button>
+    <div class="project-modal-header">
+      <div class="project-card-thumb" id="projectModalThumb"><span class="project-card-initial" id="projectModalInitial"></span></div>
+      <div>
+        <h2 id="projectModalName"></h2>
+        <span class="status-pill" id="projectModalStatus"></span>
+      </div>
+    </div>
+    <p class="project-card-tagline" id="projectModalTagline"></p>
+    <p class="project-card-desc" id="projectModalDesc"></p>
+    <div class="project-card-tech" id="projectModalTech"></div>
+    <div class="project-modal-screenshots" id="projectModalScreenshots"></div>
+    <div id="projectModalChangelog"></div>
+    <code class="project-card-cmd" id="projectModalCmd"></code>
+    <div class="project-card-links" id="projectModalLinks"></div>
+  </div>
+</div>
+
+<script src="projects.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

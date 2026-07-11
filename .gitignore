@@ -1,0 +1,8 @@
+node_modules/
+
+# chaque outil (DataSite, SiteBuilder, PlanBoard) est son propre dépôt Git —
+# pas de dépôts imbriqués dans celui du hub
+projet/
+
+# config locale de l'assistant, spécifique à cette machine
+.claude/
