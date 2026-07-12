@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRYMOX — Projets</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hub-header">
+  <div class="hub-header-inner">
+    <div class="hub-brand"><span class="hub-logo-mark"></span>TRYMOX</div>
+    <div class="hub-avatar" title="TRYMOX">T</div>
+  </div>
+</header>
+
+<main class="hub-main">
+  <section class="hub-intro">
+    <h1>Mes projets</h1>
+    <p>Développeur — outils, expérimentations, projets perso. Un point d'entrée unique vers ce que je construis : certains tournent en local sur cette machine, d'autres sont encore des ébauches.</p>
+    <div class="hub-stats" id="hubStats"></div>
+  </section>
+
+  <section class="hub-panel">
+    <div class="hub-panel-header">
+      <h2>Projets</h2>
+      <button type="button" class="hub-btn hub-btn-accent" id="newHubProjectBtn">+ Nouveau projet</button>
+    </div>
+    <p class="placeholder-text hub-project-intro">Un projet réel peut utiliser plusieurs outils à la fois (une base, un site, un suivi de tâches) — relie-les ici pour sauter directement sur la bonne ressource.</p>
+    <div class="hub-grid" id="hubProjectGrid"></div>
+    <p class="placeholder-text" id="hubProjectGridEmpty" style="display:none;">Aucun projet pour l'instant — crée-en un pour relier plusieurs outils ensemble.</p>
+  </section>
+
+  <section class="hub-panel">
+    <div class="hub-panel-header">
+      <h2>Outils</h2>
+    </div>
+    <div class="hub-grid" id="projectGrid"></div>
+  </section>
+
+  <section class="hub-panel hub-about">
+    <div class="hub-avatar hub-avatar-lg">T</div>
+    <div>
+      <h2>À propos</h2>
+      <p class="placeholder-text">À compléter : qui je suis, ce que je cherche (poste, freelance, curiosité), et comment me contacter.</p>
+      <div class="hub-contact-links" id="contactLinks"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="hub-footer">
+  <p>Fait en JS vanilla, sans framework — <span id="hubYear"></span></p>
+</footer>
+
+<div class="modal-overlay" id="projectModalOverlay">
+  <div class="modal modal-project">
+    <button type="button" class="modal-close" id="projectModalClose" aria-label="Fermer">×</button>
+    <div class="project-modal-header">
+      <div class="project-card-thumb" id="projectModalThumb"><span class="project-card-initial" id="projectModalInitial"></span></div>
+      <div>
+        <h2 id="projectModalName"></h2>
+        <span class="status-pill" id="projectModalStatus"></span>
+      </div>
+    </div>
+    <p class="project-card-tagline" id="projectModalTagline"></p>
+    <p class="project-card-desc" id="projectModalDesc"></p>
+    <div class="project-card-tech" id="projectModalTech"></div>
+    <div class="project-modal-screenshots" id="projectModalScreenshots"></div>
+    <div id="projectModalChangelog"></div>
+    <code class="project-card-cmd" id="projectModalCmd"></code>
+    <div class="project-card-links" id="projectModalLinks"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="hubProjectModalOverlay">
+  <div class="modal modal-hub-project">
+    <button type="button" class="modal-close" id="hubProjectModalClose" aria-label="Fermer">×</button>
+    <h2 id="hubProjectModalTitle">Nouveau projet</h2>
+    <form id="hubProjectForm">
+      <label class="hub-form-label" for="hubProjectNameInput">Nom</label>
+      <input type="text" id="hubProjectNameInput" class="hub-filter-input" required>
+
+      <label class="hub-form-label" for="hubProjectDescInput">Description</label>
+      <textarea id="hubProjectDescInput" class="hub-filter-input" rows="3"></textarea>
+
+      <label class="hub-form-label">Outils liés</label>
+      <div class="hub-form-tool-links" id="hubProjectToolLinks"></div>
+
+      <div class="hub-form-actions">
+        <button type="button" id="hubProjectDeleteBtn" class="hub-btn hub-btn-danger" hidden>Supprimer</button>
+        <button type="submit" class="hub-btn hub-btn-accent">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="hubProjectDetailOverlay">
+  <div class="modal modal-hub-project-detail">
+    <button type="button" class="modal-close" id="hubProjectDetailClose" aria-label="Fermer">×</button>
+    <div class="hpd-header">
+      <h2 id="hpdName"></h2>
+      <p class="hpd-desc" id="hpdDesc"></p>
+    </div>
+    <div class="hpd-body">
+      <nav class="hpd-sidebar" id="hpdSidebar" aria-label="Outils liés à ce projet"></nav>
+      <div class="hpd-main">
+        <iframe id="hpdIframe" class="hpd-iframe" title="Aperçu de l'outil sélectionné"></iframe>
+        <p class="hpd-empty" id="hpdEmpty" style="display:none;">Aucun outil lié à ce projet pour l'instant — modifie le projet pour en relier un.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="projects.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

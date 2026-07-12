@@ -1,0 +1,8 @@
+node_modules/
+backend/db/*.json
+
+# chaque outil (DataSite, SiteBuilder, PlanBoard) vit dans son propre dépôt
+projet/
+
+# config locale de l'assistant, spécifique à cette machine
+.claude/
