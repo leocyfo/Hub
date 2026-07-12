@@ -5,13 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TRYMOX — Projets</title>
 <link rel="stylesheet" href="style.css">
+<script>
+  // appliqué avant le premier rendu pour éviter un flash du mauvais thème
+  // au chargement (le reste de la logique du bouton vit dans script.js)
+  (function () {
+    var saved = localStorage.getItem('hub-theme');
+    if (saved === 'dark' || saved === 'light') {
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+  })();
+</script>
 </head>
 <body>
 
 <header class="hub-header">
   <div class="hub-header-inner">
     <div class="hub-brand"><span class="hub-logo-mark"></span>TRYMOX</div>
-    <div class="hub-avatar" title="TRYMOX">T</div>
+    <div class="hub-header-actions">
+      <button type="button" class="hub-theme-toggle" id="themeToggleBtn" title="Changer de thème" aria-label="Changer de thème"></button>
+      <div class="hub-avatar" title="TRYMOX">T</div>
+    </div>
   </div>
 </header>
 

@@ -15,6 +15,36 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+// ---------- Thème clair/sombre ----------
+// l'attribut data-theme (posé ici et par le script inline dans <head>, qui
+// évite le flash au chargement) prime sur prefers-color-scheme dans les deux
+// sens ; sans préférence explicite enregistrée, le thème suit le système
+const THEME_STORAGE_KEY = 'hub-theme';
+
+function effectiveTheme() {
+  const explicit = document.documentElement.getAttribute('data-theme');
+  if (explicit === 'dark' || explicit === 'light') return explicit;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function updateThemeToggleButton() {
+  const btn = document.getElementById('themeToggleBtn');
+  if (!btn) return;
+  const isDark = effectiveTheme() === 'dark';
+  btn.textContent = isDark ? '☀' : '🌙';
+  btn.setAttribute('aria-label', isDark ? 'Passer en mode clair' : 'Passer en mode sombre');
+}
+
+function toggleTheme() {
+  const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem(THEME_STORAGE_KEY, next);
+  updateThemeToggleButton();
+}
+
+document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+updateThemeToggleButton();
+
 // classe de couleur de la pastille de statut, déduite du texte libre du champ
 // "status" (pas d'enum dédié dans projects.js, donc match par mot-clé)
 function statusClass(status) {
@@ -335,17 +365,52 @@ function closeHubProjectModal() {
 // hub (tout est proxifié sous le même host:port), donc aucun souci de
 // restriction de cadrage/CORS.
 
-function renderHpdSidebar(project) {
+let hpdActiveIndex = 0;
+
+function renderHpdSidebar(project, brokenIndices) {
   return project.links.map((l, i) => {
     const toolDef = HUB_TOOLS.find((t) => t.key === l.tool);
     const toolLabel = toolDef ? toolDef.label : l.tool;
+    const isBroken = !!(brokenIndices && brokenIndices.has(i));
+    const brokenTitle = isBroken ? `title="Ressource introuvable — a peut-être été renommée ou supprimée dans ${escapeHtml(toolLabel)}"` : '';
     return `
-      <button type="button" class="hpd-sidebar-item${i === 0 ? ' active' : ''}" data-href="${escapeHtml(hubProjectLinkHref(l))}">
-        <span class="hpd-sidebar-tool">${escapeHtml(toolLabel)}</span>
+      <button type="button" class="hpd-sidebar-item${i === hpdActiveIndex ? ' active' : ''}${isBroken ? ' broken' : ''}" data-href="${escapeHtml(hubProjectLinkHref(l))}" ${brokenTitle}>
+        <span class="hpd-sidebar-tool">${escapeHtml(toolLabel)}${isBroken ? ' ⚠' : ''}</span>
         <span class="hpd-sidebar-label">${escapeHtml(l.label)}</span>
       </button>
     `;
   }).join('');
+}
+
+// vérifie que chaque ressource liée existe toujours dans son outil
+// d'origine — un lien peut devenir obsolète silencieusement si la
+// ressource a été renommée ou supprimée depuis l'outil lui-même (le hub ne
+// le sait pas tant qu'il ne revérifie pas). Un outil injoignable n'est
+// JAMAIS traité comme un lien cassé : on ne peut pas savoir, donc on
+// s'abstient plutôt que d'accuser à tort.
+async function validateHubProjectLinks(links) {
+  const toolKeys = [...new Set(links.map((l) => l.tool))];
+  const idsByTool = {};
+  await Promise.all(toolKeys.map(async (toolKey) => {
+    const toolDef = HUB_TOOLS.find((t) => t.key === toolKey);
+    if (!toolDef) { idsByTool[toolKey] = null; return; }
+    try {
+      const res = await fetch(toolDef.resourceEndpoint);
+      if (!res.ok) { idsByTool[toolKey] = null; return; }
+      const list = await res.json();
+      idsByTool[toolKey] = new Set(list.map((item) => String(item[toolDef.idField])));
+    } catch {
+      idsByTool[toolKey] = null;
+    }
+  }));
+
+  const broken = new Set();
+  links.forEach((l, i) => {
+    const ids = idsByTool[l.tool];
+    if (ids === null) return; // outil injoignable, on ignore ce lien pour cette passe
+    if (!ids.has(l.resourceId)) broken.add(i);
+  });
+  return broken;
 }
 
 function openHubProjectDetail(project) {
@@ -357,6 +422,7 @@ function openHubProjectDetail(project) {
   const sidebarEl = document.getElementById('hpdSidebar');
   const iframeEl = document.getElementById('hpdIframe');
   const emptyEl = document.getElementById('hpdEmpty');
+  hpdActiveIndex = 0;
 
   if (project.links.length === 0) {
     sidebarEl.innerHTML = '';
@@ -366,8 +432,17 @@ function openHubProjectDetail(project) {
   } else {
     emptyEl.style.display = 'none';
     iframeEl.style.display = 'block';
-    sidebarEl.innerHTML = renderHpdSidebar(project);
+    sidebarEl.innerHTML = renderHpdSidebar(project, null);
     iframeEl.src = hubProjectLinkHref(project.links[0]);
+
+    // validation asynchrone, appliquée après coup — ne bloque jamais
+    // l'ouverture de la vue détail ; ignorée si l'utilisateur a depuis
+    // fermé cette vue ou ouvert un autre projet
+    validateHubProjectLinks(project.links).then((brokenIndices) => {
+      if (!document.getElementById('hubProjectDetailOverlay').classList.contains('open')) return;
+      if (document.getElementById('hpdName').textContent !== project.name) return;
+      sidebarEl.innerHTML = renderHpdSidebar(project, brokenIndices);
+    });
   }
 
   document.getElementById('hubProjectDetailOverlay').classList.add('open');
@@ -383,7 +458,9 @@ function closeHubProjectDetail() {
 document.getElementById('hpdSidebar').addEventListener('click', (e) => {
   const btn = e.target.closest('.hpd-sidebar-item');
   if (!btn) return;
-  document.querySelectorAll('.hpd-sidebar-item').forEach((b) => b.classList.remove('active'));
+  const items = [...document.querySelectorAll('.hpd-sidebar-item')];
+  hpdActiveIndex = items.indexOf(btn); // préservé si la sidebar se re-rend après validation
+  items.forEach((b) => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('hpdIframe').src = btn.dataset.href;
 });

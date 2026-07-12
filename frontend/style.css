@@ -25,6 +25,8 @@
   --danger:      #d1483a;
   --danger-soft: rgba(209, 72, 58, 0.1);
 
+  --header-bg:   rgba(255, 255, 255, 0.95);
+
   --font-ui:     'Inter', sans-serif;
   --font-mono:   'IBM Plex Mono', monospace;
   --radius-sm:   6px;
@@ -33,6 +35,67 @@
   --shadow-sm:   0 1px 2px rgba(20, 22, 26, 0.05);
   --shadow-md:   0 8px 24px rgba(20, 22, 26, 0.1);
   --ease:        cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* mode sombre : suit la préférence système par défaut, ou l'attribut
+   data-theme posé par le bouton de bascule (localStorage) qui prime sur
+   la préférence système dans les deux sens */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:          #14161a;
+    --panel:       #1b1e24;
+    --panel-2:     #21242b;
+    --border:      #2c3038;
+    --border-strong: #3a3f47;
+    --text:        #edeff2;
+    --text-dim:    #8b909c;
+    --text-faint:  #6b7280;
+
+    --accent:      #5b9fe8;
+    --accent-soft: rgba(91, 159, 232, 0.16);
+    --ok:          #4fbf7a;
+    --ok-soft:     rgba(79, 191, 122, 0.16);
+    --info:        #5b9fe8;
+    --info-soft:   rgba(91, 159, 232, 0.16);
+    --purple:      #a17ee8;
+    --purple-soft: rgba(161, 126, 232, 0.16);
+    --warn:        #e8a33d;
+    --warn-soft:   rgba(232, 163, 61, 0.16);
+    --danger:      #e8695a;
+    --danger-soft: rgba(232, 105, 90, 0.16);
+
+    --header-bg:   rgba(20, 22, 26, 0.9);
+    --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md:   0 8px 24px rgba(0, 0, 0, 0.45);
+  }
+}
+
+:root[data-theme="dark"]{
+  --bg:          #14161a;
+  --panel:       #1b1e24;
+  --panel-2:     #21242b;
+  --border:      #2c3038;
+  --border-strong: #3a3f47;
+  --text:        #edeff2;
+  --text-dim:    #8b909c;
+  --text-faint:  #6b7280;
+
+  --accent:      #5b9fe8;
+  --accent-soft: rgba(91, 159, 232, 0.16);
+  --ok:          #4fbf7a;
+  --ok-soft:     rgba(79, 191, 122, 0.16);
+  --info:        #5b9fe8;
+  --info-soft:   rgba(91, 159, 232, 0.16);
+  --purple:      #a17ee8;
+  --purple-soft: rgba(161, 126, 232, 0.16);
+  --warn:        #e8a33d;
+  --warn-soft:   rgba(232, 163, 61, 0.16);
+  --danger:      #e8695a;
+  --danger-soft: rgba(232, 105, 90, 0.16);
+
+  --header-bg:   rgba(20, 22, 26, 0.9);
+  --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md:   0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 :root{
@@ -66,7 +129,7 @@ body{
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--header-bg);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--border);
   padding: 14px 24px;
@@ -96,6 +159,31 @@ body{
   background: var(--accent);
   display: inline-block;
 }
+
+.hub-header-actions{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hub-theme-toggle{
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--text-dim);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.hub-theme-toggle:hover{ border-color: var(--border-strong); color: var(--text); }
 
 .hub-avatar{
   flex-shrink: 0;
@@ -636,6 +724,13 @@ body{
 
 .hpd-sidebar-item:hover{ border-color: var(--border-strong); }
 .hpd-sidebar-item.active{ border-color: var(--accent); background: var(--accent-soft); }
+
+/* lien dont la ressource n'existe plus dans son outil d'origine
+   (renommée/supprimée depuis, détecté par validateHubProjectLinks) — reste
+   cliquable (l'outil gère déjà l'absence de ressource sans planter), juste
+   signalé visuellement */
+.hpd-sidebar-item.broken{ border-style: dashed; opacity: 0.7; }
+.hpd-sidebar-item.broken .hpd-sidebar-label{ color: var(--text-dim); font-style: italic; }
 
 .hpd-sidebar-tool{ font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-faint); }
 .hpd-sidebar-item.active .hpd-sidebar-tool{ color: var(--accent); }
