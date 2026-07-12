@@ -1,3 +1,11 @@
+// force un rechargement complet si la page est restaurée depuis le cache
+// arrière du navigateur (bfcache) — sans ça, un retour en arrière depuis un
+// autre outil peut réafficher un état JS/DOM figé au moment du départ,
+// potentiellement très en retard sur ce que le serveur sert réellement
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) location.reload();
+});
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
