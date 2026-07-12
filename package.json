@@ -2,7 +2,7 @@
   "name": "hub",
   "version": "1.0.0",
   "private": true,
-  "description": "Point d'entrée unique vers mes outils : sert la page du hub et héberge DataSite/Maze sous des sous-chemins.",
+  "description": "Page d'entrée unique vers mes outils, avec proxy vers chacun.",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js"

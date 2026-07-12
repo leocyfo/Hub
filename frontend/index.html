@@ -19,38 +19,31 @@
   <section class="hub-intro">
     <h1>Mes projets</h1>
     <p>Développeur — outils, expérimentations, projets perso. Un point d'entrée unique vers ce que je construis : certains tournent en local sur cette machine, d'autres sont encore des ébauches.</p>
-    <div class="hub-stats" id="hubStats">
-      <!-- généré par script.js à partir de projects.js -->
-    </div>
+    <div class="hub-stats" id="hubStats"></div>
   </section>
 
   <section class="hub-panel">
     <div class="hub-panel-header">
       <h2>Projets</h2>
+      <button type="button" class="hub-btn hub-btn-accent" id="newHubProjectBtn">+ Nouveau projet</button>
     </div>
-    <div class="hub-filter-bar">
-      <input type="search" id="projectSearch" class="hub-filter-input"
-             placeholder="Rechercher (nom, techno)…" aria-label="Rechercher un projet">
-      <select id="statusFilter" class="hub-filter-select" aria-label="Filtrer par statut">
-        <option value="all">Tous les statuts</option>
-      </select>
-      <select id="hostedFilter" class="hub-filter-select" aria-label="Filtrer par hébergement">
-        <option value="all">Tous</option>
-        <option value="hosted">Hébergés ici</option>
-        <option value="external">Externes</option>
-      </select>
+    <p class="placeholder-text hub-project-intro">Un projet réel peut utiliser plusieurs outils à la fois (une base, un site, un suivi de tâches) — relie-les ici pour sauter directement sur la bonne ressource.</p>
+    <div class="hub-grid" id="hubProjectGrid"></div>
+    <p class="placeholder-text" id="hubProjectGridEmpty" style="display:none;">Aucun projet pour l'instant — crée-en un pour relier plusieurs outils ensemble.</p>
+  </section>
+
+  <section class="hub-panel">
+    <div class="hub-panel-header">
+      <h2>Outils</h2>
     </div>
-    <div class="hub-grid" id="projectGrid">
-      <!-- généré par script.js à partir de projects.js -->
-    </div>
-    <p class="placeholder-text" id="projectGridEmpty" style="display:none;">Aucun projet ne correspond à ces critères.</p>
+    <div class="hub-grid" id="projectGrid"></div>
   </section>
 
   <section class="hub-panel hub-about">
     <div class="hub-avatar hub-avatar-lg">T</div>
     <div>
       <h2>À propos</h2>
-      <p class="placeholder-text"><!-- TODO: courte bio --> À compléter : qui je suis, ce que je cherche (poste, freelance, curiosité), et comment me contacter.</p>
+      <p class="placeholder-text">À compléter : qui je suis, ce que je cherche (poste, freelance, curiosité), et comment me contacter.</p>
       <div class="hub-contact-links" id="contactLinks"></div>
     </div>
   </section>
@@ -77,6 +70,45 @@
     <div id="projectModalChangelog"></div>
     <code class="project-card-cmd" id="projectModalCmd"></code>
     <div class="project-card-links" id="projectModalLinks"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="hubProjectModalOverlay">
+  <div class="modal modal-hub-project">
+    <button type="button" class="modal-close" id="hubProjectModalClose" aria-label="Fermer">×</button>
+    <h2 id="hubProjectModalTitle">Nouveau projet</h2>
+    <form id="hubProjectForm">
+      <label class="hub-form-label" for="hubProjectNameInput">Nom</label>
+      <input type="text" id="hubProjectNameInput" class="hub-filter-input" required>
+
+      <label class="hub-form-label" for="hubProjectDescInput">Description</label>
+      <textarea id="hubProjectDescInput" class="hub-filter-input" rows="3"></textarea>
+
+      <label class="hub-form-label">Outils liés</label>
+      <div class="hub-form-tool-links" id="hubProjectToolLinks"></div>
+
+      <div class="hub-form-actions">
+        <button type="button" id="hubProjectDeleteBtn" class="hub-btn hub-btn-danger" hidden>Supprimer</button>
+        <button type="submit" class="hub-btn hub-btn-accent">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="hubProjectDetailOverlay">
+  <div class="modal modal-hub-project-detail">
+    <button type="button" class="modal-close" id="hubProjectDetailClose" aria-label="Fermer">×</button>
+    <div class="hpd-header">
+      <h2 id="hpdName"></h2>
+      <p class="hpd-desc" id="hpdDesc"></p>
+    </div>
+    <div class="hpd-body">
+      <nav class="hpd-sidebar" id="hpdSidebar" aria-label="Outils liés à ce projet"></nav>
+      <div class="hpd-main">
+        <iframe id="hpdIframe" class="hpd-iframe" title="Aperçu de l'outil sélectionné"></iframe>
+        <p class="hpd-empty" id="hpdEmpty" style="display:none;">Aucun outil lié à ce projet pour l'instant — modifie le projet pour en relier un.</p>
+      </div>
+    </div>
   </div>
 </div>
 

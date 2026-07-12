@@ -10,18 +10,14 @@
 //   status        court statut ("En développement", "Prototype", ...)
 //   repoUrl       URL réelle du dépôt si publié, sinon null (pas de lien inventé)
 //   localCommand  commande pour lancer le projet en local, ou null
-//   localUrl      URL locale une fois lancé (ex. http://localhost:3000), ou null
-//                 — laissé à null quand hostedPath est renseigné : un seul
-//                 lien plutôt que deux vers des origines différentes, qui
-//                 casseraient la session entre l'un et l'autre
-//   hostedPath    chemin sur CE hub si l'outil y est hébergé (ex. '/datasite/'),
-//                 ou null si l'outil n'est pas (encore) proxifié par le hub
-//   screenshots      tableau de chemins d'images (ex. 'assets/datasite/1.png'),
-//                    optionnel — absent/[] si aucune (n'affiche rien dans la modale)
-//   longDescription  texte plus détaillé pour la vue détail ; si absent,
-//                    la modale retombe sur `description`
-//   changelog        tableau [{ date: 'YYYY-MM-DD', text: '...' }], plus récent
-//                    en premier, optionnel — absent/[] si aucun
+//   localUrl      URL locale une fois lancé, ou null — laissé à null quand
+//                 hostedPath est renseigné (un seul lien, pas deux origines
+//                 différentes qui casseraient la session entre l'une et l'autre)
+//   hostedPath    chemin sur ce hub si l'outil y est proxifié, sinon null
+//   screenshots      chemins d'images, optionnel
+//   longDescription  texte détaillé pour la modale ; retombe sur `description` si absent
+//   changelog        [{ date: 'YYYY-MM-DD', text }], plus récent en premier, optionnel
+
 const PROJECTS = [
   {
     name: 'DataSite',
@@ -61,6 +57,72 @@ const PROJECTS = [
       { date: '2026-07-11', text: "Thème clair/sombre, glisser-déposer des notes, étiquettes, sous-listes à cocher, annuler une suppression, sélection multiple avec actions groupées, import JSON, recherche globale multi-projets." },
       { date: '2026-07-11', text: "Dates d'échéance et priorité, recherche/filtre, glisser-déposer des tâches, raccourcis clavier, export JSON, mise en page responsive et accessibilité clavier." },
     ],
+  },
+  {
+    name: 'EnvKeeper',
+    tagline: "Variables d'environnement et secrets par projet",
+    description: "Coffres locaux de variables d'environnement/secrets, un par projet — jamais commités. Valeurs masquées par défaut, copie en un clic, export au format .env.",
+    tech: ['Node.js', 'Express', 'JS vanilla'],
+    status: 'En développement actif',
+    repoUrl: null,
+    localCommand: 'node backend/server.js',
+    localUrl: null,
+    hostedPath: '/envkeeper/',
+  },
+  {
+    name: 'SnippetBox',
+    tagline: 'Bouts de code réutilisables entre projets',
+    description: "Bibliothèque personnelle de snippets avec recherche (titre, code, étiquettes) et filtre par langage. Copie en un clic, pas besoin de refouiller un vieux dépôt pour retrouver une fonction.",
+    tech: ['Node.js', 'Express', 'JS vanilla'],
+    status: 'En développement actif',
+    repoUrl: null,
+    localCommand: 'node backend/server.js',
+    localUrl: null,
+    hostedPath: '/snippetbox/',
+  },
+  {
+    name: 'Moodboard',
+    tagline: "Planches d'inspiration par projet",
+    description: "Couleurs, images et liens de référence rassemblés par projet — utile avant même de commencer à construire, pour fixer une direction visuelle.",
+    tech: ['Node.js', 'Express', 'JS vanilla'],
+    status: 'En développement actif',
+    repoUrl: null,
+    localCommand: 'node backend/server.js',
+    localUrl: null,
+    hostedPath: '/moodboard/',
+  },
+  {
+    name: 'ThemeForge',
+    tagline: 'Générateur de palettes de couleurs',
+    description: "Génère une palette (complémentaire, analogue, triadique, monochromatique) à partir d'une couleur de base, avec export en variables CSS — réutilisable directement dans SiteBuilder.",
+    tech: ['Node.js', 'Express', 'JS vanilla'],
+    status: 'En développement actif',
+    repoUrl: null,
+    localCommand: 'node backend/server.js',
+    localUrl: null,
+    hostedPath: '/themeforge/',
+  },
+  {
+    name: 'FlowMap',
+    tagline: "Petits diagrammes de flux/architecture",
+    description: "Blocs déplaçables reliés par des flèches — pour esquisser un schéma d'architecture ou un enchaînement d'écrans avant de commencer à construire.",
+    tech: ['Node.js', 'Express', 'JS vanilla'],
+    status: 'En développement actif',
+    repoUrl: null,
+    localCommand: 'node backend/server.js',
+    localUrl: null,
+    hostedPath: '/flowmap/',
+  },
+  {
+    name: 'APITester',
+    tagline: 'Mini-client HTTP local pour tester des API',
+    description: "Construit une requête (méthode, en-têtes, corps) et l'envoie réellement — utile pour tester les API des autres outils du hub (DataSite, PlanBoard...) pendant le développement. Historique des requêtes conservé.",
+    tech: ['Node.js', 'Express', 'JS vanilla'],
+    status: 'En développement actif',
+    repoUrl: null,
+    localCommand: 'node backend/server.js',
+    localUrl: null,
+    hostedPath: '/apitester/',
   },
 ];
 

@@ -1,7 +1,7 @@
 node_modules/
+backend/db/*.json
 
-# chaque outil (DataSite, SiteBuilder, PlanBoard) est son propre dépôt Git —
-# pas de dépôts imbriqués dans celui du hub
+# chaque outil (DataSite, SiteBuilder, PlanBoard) vit dans son propre dépôt
 projet/
 
 # config locale de l'assistant, spécifique à cette machine

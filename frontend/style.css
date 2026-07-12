@@ -1,47 +1,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap');
 
-/* style inspiré d'un dashboard type "app launcher" (cartes sur panneaux
-   arrondis, icônes carrées colorées, liens bleus), en variante sombre */
+/* page simple et claire, sans concept graphique particulier : fond blanc,
+   cartes classiques avec bordure fine, une seule couleur d'accent */
 :root{
-  --bg:        #14161a;
-  --panel:     #1b1e24;
-  --panel-2:   #21242b;
-  --border:    #2c3038;
-  --text:      #edeff2;
-  --text-dim:  #8b909c;
-  --accent:    #5b9fe8;
-  --accent-soft: rgba(91, 159, 232, 0.14);
-  --ok:        #4fbf7a;
-  --ok-soft:   rgba(79, 191, 122, 0.14);
-  --info:      #5b9fe8;
-  --info-soft: rgba(91, 159, 232, 0.14);
-  --purple:    #a17ee8;
-  --purple-soft: rgba(161, 126, 232, 0.14);
-  --warn:      #e8a33d;
-  --warn-soft: rgba(232, 163, 61, 0.14);
-  --font-ui:   'Inter', sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.4);
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --bg:          #ffffff;
+  --panel:       #ffffff;
+  --panel-2:     #f6f7f8;
+  --border:      #e2e4e8;
+  --border-strong: #c9cdd4;
+  --text:        #1a1c20;
+  --text-dim:    #5a6069;
+  --text-faint:  #8b909a;
+
+  --accent:      #3b6fe0;
+  --accent-soft: rgba(59, 111, 224, 0.09);
+  --ok:          #1f9d55;
+  --ok-soft:     rgba(31, 157, 85, 0.1);
+  --info:        #3b6fe0;
+  --info-soft:   rgba(59, 111, 224, 0.09);
+  --purple:      #7c5cf0;
+  --purple-soft: rgba(124, 92, 240, 0.1);
+  --warn:        #b8720a;
+  --warn-soft:   rgba(184, 114, 10, 0.1);
+  --danger:      #d1483a;
+  --danger-soft: rgba(209, 72, 58, 0.1);
+
+  --font-ui:     'Inter', sans-serif;
+  --font-mono:   'IBM Plex Mono', monospace;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --shadow-sm:   0 1px 2px rgba(20, 22, 26, 0.05);
+  --shadow-md:   0 8px 24px rgba(20, 22, 26, 0.1);
+  --ease:        cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* palette des icônes de projet (carrés colorés type "Web Links" de la
-   référence) — une couleur choisie de façon déterministe par projet, voir
-   script.js#swatchColor ; teintes remontées pour rester lisibles sur fond
-   sombre */
 :root{
-  --swatch-1: #e05d4c;
-  --swatch-2: #e8a33d;
-  --swatch-3: #6b7280;
-  --swatch-4: #8fae3f;
-  --swatch-5: #5b9fe8;
-  --swatch-6: #2fb3a6;
-  --swatch-7: #a17ee8;
-  --swatch-8: #d9708a;
+  --swatch-1: #d1483a;
+  --swatch-2: #b8720a;
+  --swatch-3: #5a6069;
+  --swatch-4: #5f8a2b;
+  --swatch-5: #3b6fe0;
+  --swatch-6: #0f8a7c;
+  --swatch-7: #7c5cf0;
+  --swatch-8: #c23b73;
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -64,7 +66,8 @@ body{
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--panel);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--border);
   padding: 14px 24px;
 }
@@ -84,14 +87,13 @@ body{
   gap: 10px;
   font-weight: 700;
   font-size: 15px;
-  letter-spacing: 0.2px;
 }
 
 .hub-logo-mark{
   width: 26px;
   height: 26px;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--accent), #1a4fc4);
+  background: var(--accent);
   display: inline-block;
 }
 
@@ -154,13 +156,12 @@ body{
   display: flex;
   align-items: baseline;
   gap: 6px;
-  background: var(--panel);
+  background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 6px 14px;
   font-size: 12.5px;
   color: var(--text-dim);
-  box-shadow: var(--shadow-sm);
 }
 
 .hub-stat strong{
@@ -191,19 +192,44 @@ body{
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: var(--text-dim);
+  color: var(--text-faint);
 }
 
-/* ---------- RECHERCHE / FILTRE ---------- */
-.hub-filter-bar{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 16px;
+.hub-btn{
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
 }
 
-.hub-filter-input,
-.hub-filter-select{
+.hub-btn:hover{ border-color: var(--border-strong); }
+
+.hub-btn-accent{
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.hub-btn-accent:hover{ opacity: 0.9; }
+
+.hub-btn-danger{
+  background: none;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.hub-btn-danger:hover{ background: var(--danger-soft); }
+
+.hub-project-intro{ margin-bottom: 16px; }
+
+/* ---------- CHAMPS DE FORMULAIRE ---------- */
+.hub-filter-input{
   background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -214,13 +240,7 @@ body{
   transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 
-.hub-filter-select{ cursor: pointer; }
-
-.hub-filter-input{ flex: 1; min-width: 180px; }
-.hub-filter-select{ min-width: 150px; }
-
-.hub-filter-input:focus,
-.hub-filter-select:focus{
+.hub-filter-input:focus{
   border-color: var(--accent);
   outline: none;
   box-shadow: 0 0 0 3px var(--accent-soft);
@@ -229,7 +249,7 @@ body{
 /* ---------- GRILLE DE PROJETS ---------- */
 .hub-grid{
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 16px;
 }
 
@@ -242,12 +262,11 @@ body{
   border-radius: var(--radius-md);
   padding: 16px;
   cursor: pointer;
-  transition: transform 0.15s var(--ease), border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 
 .project-card:hover{
-  transform: translateY(-2px);
-  border-color: #3a3f47;
+  border-color: var(--border-strong);
   box-shadow: var(--shadow-md);
 }
 
@@ -259,11 +278,6 @@ body{
   align-items: center;
   justify-content: center;
   background: var(--swatch-bg, var(--accent));
-  transition: transform 0.15s var(--ease);
-}
-
-.project-card:hover .project-card-thumb{
-  transform: scale(1.06);
 }
 
 .project-card-initial{
@@ -275,9 +289,10 @@ body{
 
 .project-card-top{
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px 8px;
 }
 
 .project-card-name{
@@ -304,20 +319,18 @@ body{
 .status-pill.status-purple{ background: var(--purple-soft); color: var(--purple); }
 .status-pill.status-dim{ background: var(--panel-2); color: var(--text-dim); }
 
-/* point d'état en direct des outils hébergés — rempli après le premier appel
-   à /api/status, gris tant que la réponse n'est pas arrivée */
 .status-dot{
   flex-shrink: 0;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   margin-top: 4px;
-  background: var(--text-dim);
-  opacity: 0.5;
+  background: var(--text-faint);
+  opacity: 0.6;
 }
 
-.status-dot-up{ background: var(--ok); opacity: 1; box-shadow: 0 0 0 3px var(--ok-soft); }
-.status-dot-down{ background: #e25c5c; opacity: 1; box-shadow: 0 0 0 3px rgba(226, 92, 92, 0.14); }
+.status-dot-up{ background: var(--ok); opacity: 1; }
+.status-dot-down{ background: var(--danger); opacity: 1; }
 
 .project-card-tagline{
   color: var(--text-dim);
@@ -328,8 +341,7 @@ body{
 .project-card-desc{
   font-size: 13px;
   line-height: 1.5;
-  color: var(--text);
-  opacity: 0.8;
+  color: var(--text-dim);
 }
 
 .project-card-tech{
@@ -362,19 +374,14 @@ body{
   font-size: 12.5px;
   font-weight: 600;
   text-decoration: none;
-  transition: opacity 0.15s var(--ease);
 }
 
-.project-link:hover{
-  text-decoration: underline;
-  opacity: 0.85;
-}
+.project-link:hover{ text-decoration: underline; }
 
 .project-link-disabled{
-  color: var(--text-dim);
+  color: var(--text-faint);
   font-size: 12.5px;
   font-weight: 600;
-  opacity: 0.7;
 }
 
 .project-card-ghost{
@@ -384,10 +391,10 @@ body{
   justify-content: center;
   gap: 6px;
   min-height: 150px;
-  border: 1px dashed var(--border);
+  border: 1px dashed var(--border-strong);
   border-radius: var(--radius-md);
   padding: 16px;
-  color: var(--text-dim);
+  color: var(--text-faint);
   font-size: 12.5px;
   text-align: center;
 }
@@ -413,14 +420,64 @@ body{
   transition: border-color 0.15s var(--ease), color 0.15s var(--ease);
 }
 
-.project-card-cmd:hover{
-  border-color: var(--accent);
-  color: var(--text);
+.project-card-cmd:hover{ border-color: var(--accent); color: var(--text); }
+.project-card-cmd-copied{ border-color: var(--ok); color: var(--ok); }
+
+/* ---------- PROJETS DU HUB (regroupent plusieurs outils) ---------- */
+.hub-project-card{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 
-.project-card-cmd-copied{
-  border-color: var(--ok);
-  color: var(--ok);
+.hub-project-card:hover{
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.hub-project-card-top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hub-project-name{
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.hub-project-edit-btn{
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-size: 13px;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+.hub-project-edit-btn:hover{ background: var(--panel-2); color: var(--text); }
+
+.hub-project-desc{
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.hub-project-tool-count{
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-faint);
 }
 
 /* ---------- À PROPOS ---------- */
@@ -456,9 +513,7 @@ body{
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(10, 11, 13, 0.6);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(20, 22, 26, 0.45);
   align-items: center;
   justify-content: center;
   z-index: 100;
@@ -472,11 +527,6 @@ body{
   to { opacity: 1; }
 }
 
-@keyframes modal-in{
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
 .modal{
   position: relative;
   background: var(--panel);
@@ -487,7 +537,6 @@ body{
   max-height: 85vh;
   overflow-y: auto;
   padding: 24px;
-  animation: modal-in 0.18s var(--ease);
 }
 
 .modal-close{
@@ -506,15 +555,168 @@ body{
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.15s var(--ease), color 0.15s var(--ease);
 }
 
-.modal-close:hover{
-  background: var(--panel-2);
-  color: var(--text);
-}
+.modal-close:hover{ background: var(--panel-2); color: var(--text); }
 
 .modal-project{ width: 560px; }
+.modal-hub-project{ width: 480px; }
+
+.modal-hub-project h2{
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding-right: 24px;
+}
+
+/* ---------- Vue détail d'un projet-hub (page pleine, pas une modale
+   centrée : le clic sur une carte doit se sentir comme une navigation vers
+   une nouvelle page, pas comme l'ouverture d'une fenêtre flottante) ---------- */
+#hubProjectDetailOverlay{
+  background: var(--bg);
+  padding: 0;
+}
+
+.modal-hub-project-detail{
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  max-height: none;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 40px;
+}
+
+.hpd-header{ padding-right: 36px; margin-bottom: 18px; flex-shrink: 0; }
+.hpd-header h2{ font-size: 24px; font-weight: 700; }
+.hpd-desc{ font-size: 14px; color: var(--text-dim); margin-top: 6px; }
+
+.modal-hub-project-detail .modal-close{
+  top: 24px;
+  right: 32px;
+  width: 36px;
+  height: 36px;
+  font-size: 24px;
+  border: 1px solid var(--border);
+}
+
+.hpd-body{
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  min-height: 0;
+}
+
+.hpd-sidebar{
+  flex-shrink: 0;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.hpd-sidebar-item{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.hpd-sidebar-item:hover{ border-color: var(--border-strong); }
+.hpd-sidebar-item.active{ border-color: var(--accent); background: var(--accent-soft); }
+
+.hpd-sidebar-tool{ font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-faint); }
+.hpd-sidebar-item.active .hpd-sidebar-tool{ color: var(--accent); }
+.hpd-sidebar-label{ font-size: 12.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
+.hpd-main{
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+  background: var(--panel);
+}
+
+.hpd-iframe{
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.hpd-empty{
+  padding: 20px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-style: italic;
+}
+
+@media (max-width: 720px){
+  .modal-hub-project-detail{ padding: 16px; }
+  .hpd-body{ flex-direction: column; }
+  .hpd-sidebar{ width: 100%; flex-direction: row; flex-wrap: wrap; }
+}
+
+.hub-form-label{
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+
+.hub-form-label:first-of-type{ margin-top: 0; }
+
+#hubProjectNameInput,
+#hubProjectDescInput{
+  width: 100%;
+  font-family: var(--font-ui);
+}
+
+#hubProjectDescInput{ resize: vertical; }
+
+.hub-form-tool-links{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hub-form-tool-link{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hub-form-tool-link label{
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.hub-form-tool-link select{ flex: 1; min-width: 0; }
+
+.hub-form-actions{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 22px;
+}
 
 .project-modal-header{
   display: flex;
@@ -560,7 +762,7 @@ body{
 .hub-footer{
   text-align: center;
   padding: 24px;
-  color: var(--text-dim);
+  color: var(--text-faint);
   font-family: var(--font-mono);
   font-size: 11px;
   border-top: 1px solid var(--border);
@@ -576,8 +778,6 @@ body{
     gap: 12px;
   }
 
-  .hub-filter-select{ min-width: 130px; }
-
   .modal{ padding: 18px; }
   .project-modal-header{ flex-wrap: wrap; }
 }
@@ -588,12 +788,7 @@ body{
     align-items: flex-start;
   }
 
-  .hub-filter-bar{
-    flex-direction: column;
-  }
-
-  .hub-filter-input,
-  .hub-filter-select{
+  .hub-filter-input{
     width: 100%;
     min-width: 0;
   }
