@@ -248,6 +248,71 @@ document.addEventListener('click', (e) => {
   }).catch(() => {});
 });
 
+// ---------- Recherche globale ----------
+
+const hubSearchInputEl = document.getElementById('hubSearchInput');
+const hubSearchResultsEl = document.getElementById('hubSearchResults');
+let hubSearchDebounceTimer = null;
+let hubSearchRequestId = 0;
+
+function renderHubSearchResults(groups) {
+  if (groups.length === 0) {
+    hubSearchResultsEl.innerHTML = '<p class="hub-search-empty">Aucun résultat.</p>';
+    return;
+  }
+  hubSearchResultsEl.innerHTML = groups.map((g) => `
+    <div class="hub-search-group">
+      <div class="hub-search-group-label">${escapeHtml(g.label)}</div>
+      ${g.items.map((item) => `<button type="button" class="hub-search-item" data-href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</button>`).join('')}
+    </div>
+  `).join('');
+}
+
+async function runHubSearch(q) {
+  // évite qu'une réponse lente et périmée n'écrase l'affichage d'une
+  // recherche plus récente déjà revenue avant elle
+  const requestId = ++hubSearchRequestId;
+  const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+  if (requestId !== hubSearchRequestId) return;
+  const groups = res.ok ? await res.json() : [];
+  if (requestId !== hubSearchRequestId) return;
+  renderHubSearchResults(groups);
+  hubSearchResultsEl.hidden = false;
+}
+
+hubSearchInputEl.addEventListener('input', () => {
+  clearTimeout(hubSearchDebounceTimer);
+  const q = hubSearchInputEl.value.trim();
+  if (!q) {
+    hubSearchRequestId++; // annule toute réponse en vol pour la recherche précédente
+    hubSearchResultsEl.hidden = true;
+    hubSearchResultsEl.innerHTML = '';
+    return;
+  }
+  hubSearchDebounceTimer = setTimeout(() => runHubSearch(q), 200);
+});
+
+hubSearchInputEl.addEventListener('focus', () => {
+  if (hubSearchResultsEl.innerHTML) hubSearchResultsEl.hidden = false;
+});
+
+hubSearchResultsEl.addEventListener('click', (e) => {
+  const item = e.target.closest('.hub-search-item');
+  if (!item) return;
+  location.href = item.dataset.href;
+});
+
+document.addEventListener('click', (e) => {
+  if (!document.getElementById('hubSearch').contains(e.target)) hubSearchResultsEl.hidden = true;
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !hubSearchResultsEl.hidden) {
+    hubSearchResultsEl.hidden = true;
+    hubSearchInputEl.blur();
+  }
+});
+
 // ---------- Projets du hub : regroupent plusieurs outils autour d'un même
 // projet réel, avec un lien direct vers la ressource précise dans chaque
 // outil (le hub proxifie déjà /datasite, /sitebuilder, /planboard, donc ces

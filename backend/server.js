@@ -28,6 +28,22 @@ const TOOLS = [
   { key: 'apitester', port: 5100, dir: path.join(PROJET_DIR, 'APITester') },
 ];
 
+// mêmes ressources que HUB_TOOLS côté frontend (voir frontend/script.js),
+// dupliquées ici car le backend interroge chaque outil directement sur son
+// port local plutôt qu'à travers le proxy /<key> (plus simple : pas de
+// souci d'origine/cookies pour un simple GET serveur-à-serveur)
+const SEARCH_RESOURCES = [
+  { key: 'datasite', label: 'DataSite', path: '/api/databases', idField: 'id', labelField: 'name', linkParam: 'db' },
+  { key: 'sitebuilder', label: 'SiteBuilder', path: '/api/projects', idField: 'name', labelField: 'name', linkParam: 'project' },
+  { key: 'planboard', label: 'PlanBoard', path: '/api/projects', idField: 'name', labelField: 'name', linkParam: 'project' },
+  { key: 'envkeeper', label: 'EnvKeeper', path: '/api/vaults', idField: 'name', labelField: 'name', linkParam: 'vault' },
+  { key: 'snippetbox', label: 'SnippetBox', path: '/api/snippets', idField: 'id', labelField: 'title', linkParam: 'snippet' },
+  { key: 'moodboard', label: 'Moodboard', path: '/api/boards', idField: 'name', labelField: 'name', linkParam: 'board' },
+  { key: 'themeforge', label: 'ThemeForge', path: '/api/palettes', idField: 'id', labelField: 'name', linkParam: 'palette' },
+  { key: 'flowmap', label: 'FlowMap', path: '/api/flows', idField: 'name', labelField: 'name', linkParam: 'flow' },
+  { key: 'apitester', label: 'APITester', path: '/api/history', idField: 'id', labelField: 'label', linkParam: 'history' },
+];
+
 function ping(port) {
   return new Promise((resolve) => {
     const req = http.get({ host: '127.0.0.1', port, path: '/', timeout: 1000 }, (res) => {
@@ -131,6 +147,36 @@ app.use((req, res, next) => {
 app.get('/api/status', async (req, res) => {
   const results = await Promise.all(TOOLS.map(async (t) => [t.key, await ping(t.port)]));
   res.json(Object.fromEntries(results));
+});
+
+// recherche globale : interroge chaque outil pour son propre nom/libellé
+// (pas de recherche dans le contenu de chaque ressource pour cette première
+// passe) — un outil injoignable ne bloque pas les autres, ses résultats sont
+// simplement absents
+app.get('/api/search', async (req, res) => {
+  const q = (req.query.q || '').toString().trim().toLowerCase();
+  if (!q) return res.json([]);
+
+  const groups = await Promise.all(SEARCH_RESOURCES.map(async (r) => {
+    const toolDef = TOOLS.find((t) => t.key === r.key);
+    try {
+      const apiRes = await fetch(`http://127.0.0.1:${toolDef.port}${r.path}`);
+      if (!apiRes.ok) return { tool: r.key, label: r.label, items: [] };
+      const list = await apiRes.json();
+      const items = list
+        .filter((item) => String(item[r.labelField]).toLowerCase().includes(q))
+        .map((item) => ({
+          id: String(item[r.idField]),
+          label: String(item[r.labelField]),
+          href: `/${r.key}/?${r.linkParam}=${encodeURIComponent(String(item[r.idField]))}`,
+        }));
+      return { tool: r.key, label: r.label, items };
+    } catch {
+      return { tool: r.key, label: r.label, items: [] };
+    }
+  }));
+
+  res.json(groups.filter((g) => g.items.length > 0));
 });
 
 // express.json() scopé à ce seul préfixe plutôt que global : appliqué à
