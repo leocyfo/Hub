@@ -32,16 +32,92 @@ const TOOLS = [
 // dupliquées ici car le backend interroge chaque outil directement sur son
 // port local plutôt qu'à travers le proxy /<key> (plus simple : pas de
 // souci d'origine/cookies pour un simple GET serveur-à-serveur)
+// kind/detailPath/summarize servent à la page wiki d'un projet-hub (voir
+// GET /api/hub-projects/:name/wiki plus bas) : detailPath n'est défini QUE
+// pour les outils dont l'endpoint de liste ne suffit pas (sitebuilder,
+// moodboard, flowmap). envkeeper n'a délibérément PAS de detailPath —
+// GET /api/vaults/:name renvoie les secrets en clair, cette route ne doit
+// donc jamais être atteinte depuis la page wiki.
 const SEARCH_RESOURCES = [
-  { key: 'datasite', label: 'DataSite', path: '/api/databases', idField: 'id', labelField: 'name', linkParam: 'db' },
-  { key: 'sitebuilder', label: 'SiteBuilder', path: '/api/projects', idField: 'name', labelField: 'name', linkParam: 'project' },
-  { key: 'planboard', label: 'PlanBoard', path: '/api/projects', idField: 'name', labelField: 'name', linkParam: 'project' },
-  { key: 'envkeeper', label: 'EnvKeeper', path: '/api/vaults', idField: 'name', labelField: 'name', linkParam: 'vault' },
-  { key: 'snippetbox', label: 'SnippetBox', path: '/api/snippets', idField: 'id', labelField: 'title', linkParam: 'snippet' },
-  { key: 'moodboard', label: 'Moodboard', path: '/api/boards', idField: 'name', labelField: 'name', linkParam: 'board' },
-  { key: 'themeforge', label: 'ThemeForge', path: '/api/palettes', idField: 'id', labelField: 'name', linkParam: 'palette' },
-  { key: 'flowmap', label: 'FlowMap', path: '/api/flows', idField: 'name', labelField: 'name', linkParam: 'flow' },
-  { key: 'apitester', label: 'APITester', path: '/api/history', idField: 'id', labelField: 'label', linkParam: 'history' },
+  {
+    key: 'datasite', label: 'DataSite', path: '/api/databases', idField: 'id', labelField: 'name', linkParam: 'db',
+    kind: 'database',
+    summarize: (item) => ({
+      tables: (item.tables || []).map((t) => ({ name: t.name, rowCount: t.rowCount })),
+    }),
+  },
+  {
+    key: 'sitebuilder', label: 'SiteBuilder', path: '/api/projects', idField: 'name', labelField: 'name', linkParam: 'project',
+    kind: 'pages',
+    detailPath: (item) => `/api/projects/${encodeURIComponent(item.name)}`,
+    summarize: (item, detail) => ({
+      pageCount: (detail?.pages || []).length,
+      pageNames: (detail?.pages || []).map((p) => p.name),
+      theme: detail?.theme || null,
+    }),
+  },
+  {
+    key: 'planboard', label: 'PlanBoard', path: '/api/projects', idField: 'name', labelField: 'name', linkParam: 'project',
+    kind: 'tasks',
+    summarize: (item) => ({
+      statusCounts: item.statusCounts || { todo: 0, doing: 0, done: 0 },
+      noteCount: item.noteCount || 0,
+      overdueCount: item.overdueCount || 0,
+      pinned: !!item.pinned,
+    }),
+  },
+  {
+    key: 'envkeeper', label: 'EnvKeeper', path: '/api/vaults', idField: 'name', labelField: 'name', linkParam: 'vault',
+    kind: 'vault',
+    // SÉCURITÉ : pas de detailPath ici, volontairement — voir commentaire au
+    // dessus de SEARCH_RESOURCES.
+    summarize: (item) => ({ entryCount: item.entryCount || 0 }),
+  },
+  {
+    key: 'snippetbox', label: 'SnippetBox', path: '/api/snippets', idField: 'id', labelField: 'title', linkParam: 'snippet',
+    kind: 'snippet',
+    summarize: (item) => ({
+      language: item.language,
+      description: item.description || '',
+      tags: item.tags || [],
+      codePreview: String(item.code || '').slice(0, 400),
+      codeTruncated: String(item.code || '').length > 400,
+    }),
+  },
+  {
+    key: 'moodboard', label: 'Moodboard', path: '/api/boards', idField: 'name', labelField: 'name', linkParam: 'board',
+    kind: 'moodboard',
+    detailPath: (item) => `/api/boards/${encodeURIComponent(item.name)}`,
+    summarize: (item, detail) => {
+      const items = detail?.items || [];
+      const countsByType = {};
+      const colors = [];
+      for (const it of items) {
+        countsByType[it.type] = (countsByType[it.type] || 0) + 1;
+        if (it.type === 'color') colors.push({ hex: it.hex, label: it.label || '' });
+      }
+      return { itemCount: items.length, countsByType, colors };
+    },
+  },
+  {
+    key: 'themeforge', label: 'ThemeForge', path: '/api/palettes', idField: 'id', labelField: 'name', linkParam: 'palette',
+    kind: 'palette',
+    summarize: (item) => ({ baseHex: item.baseHex, mode: item.mode, colors: item.colors || [] }),
+  },
+  {
+    key: 'flowmap', label: 'FlowMap', path: '/api/flows', idField: 'name', labelField: 'name', linkParam: 'flow',
+    kind: 'flow',
+    detailPath: (item) => `/api/flows/${encodeURIComponent(item.name)}`,
+    summarize: (item, detail) => ({
+      nodeCount: detail?.nodes?.length ?? item.nodeCount ?? 0,
+      edgeCount: detail?.edges?.length ?? 0,
+    }),
+  },
+  {
+    key: 'apitester', label: 'APITester', path: '/api/history', idField: 'id', labelField: 'label', linkParam: 'history',
+    kind: 'request',
+    summarize: (item) => ({ method: item.method, url: item.url, label: item.label || '' }),
+  },
 ];
 
 function ping(port) {
@@ -149,6 +225,18 @@ app.get('/api/status', async (req, res) => {
   res.json(Object.fromEntries(results));
 });
 
+// config partagée des 9 outils, dérivée de SEARCH_RESOURCES — le frontend
+// construit son HUB_TOOLS à partir de cette réponse au lieu de retaper la
+// même liste à la main (les deux dérivaient auparavant de la même donnée,
+// mais séparément, avec le risque qu'elles finissent par diverger). Seuls
+// les champs sérialisables sont exposés : kind/detailPath/summarize sont
+// des fonctions, propres à la page wiki, jamais envoyées au client.
+app.get('/api/tool-config', (req, res) => {
+  res.json(SEARCH_RESOURCES.map(({ key, label, path, idField, labelField, linkParam }) => (
+    { key, label, path, idField, labelField, linkParam }
+  )));
+});
+
 // recherche globale : interroge chaque outil pour son propre nom/libellé
 // (pas de recherche dans le contenu de chaque ressource pour cette première
 // passe) — un outil injoignable ne bloque pas les autres, ses résultats sont
@@ -240,6 +328,54 @@ app.delete('/api/hub-projects/:name', (req, res) => {
   delete projects[req.params.name];
   saveHubProjects(projects);
   res.json({ ok: true });
+});
+
+// page-résumé en lecture seule d'un projet-hub : un aperçu structuré de
+// chaque ressource liée, calculé côté serveur pour ne jamais exposer plus
+// que ce que définit SEARCH_RESOURCES[].summarize (en particulier : envkeeper
+// n'a pas de detailPath, donc jamais de secret en clair ici)
+app.get('/api/hub-projects/:name/wiki', async (req, res) => {
+  const projects = loadHubProjects();
+  const project = projects[req.params.name];
+  if (!project) return res.status(404).json({ error: 'Projet introuvable.' });
+
+  const sections = await Promise.all(project.links.map(async (link) => {
+    const resourceDef = SEARCH_RESOURCES.find((r) => r.key === link.tool);
+    const toolDef = TOOLS.find((t) => t.key === link.tool);
+    const base = { tool: link.tool, label: resourceDef ? resourceDef.label : link.tool, resourceId: link.resourceId, linkLabel: link.label, kind: resourceDef ? resourceDef.kind : 'unknown' };
+    if (!resourceDef || !toolDef) return { ...base, unreachable: true };
+
+    try {
+      const listRes = await fetch(`http://127.0.0.1:${toolDef.port}${resourceDef.path}`);
+      if (!listRes.ok) return { ...base, unreachable: true };
+      const list = await listRes.json();
+      const item = list.find((it) => String(it[resourceDef.idField]) === link.resourceId);
+      if (!item) return { ...base, missing: true };
+
+      let detail;
+      if (resourceDef.detailPath) {
+        try {
+          const detailRes = await fetch(`http://127.0.0.1:${toolDef.port}${resourceDef.detailPath(item)}`);
+          // supprimée entre le GET liste et le GET détail
+          if (!detailRes.ok) return { ...base, missing: true };
+          detail = await detailRes.json();
+        } catch {
+          return { ...base, unreachable: true };
+        }
+      }
+
+      return { ...base, ...resourceDef.summarize(item, detail) };
+    } catch {
+      return { ...base, unreachable: true };
+    }
+  }));
+
+  res.json({
+    name: project.name,
+    description: project.description || '',
+    updatedAt: project.updatedAt,
+    sections,
+  });
 });
 
 for (const { key, port, cookiePathRewrite } of tools) {

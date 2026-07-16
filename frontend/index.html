@@ -18,6 +18,8 @@
 </head>
 <body>
 
+<div class="hub-grid-texture" aria-hidden="true"></div>
+
 <header class="hub-header">
   <div class="hub-header-inner">
     <div class="hub-brand"><span class="hub-logo-mark"></span>TRYMOX</div>
@@ -33,15 +35,50 @@
 </header>
 
 <main class="hub-main">
-  <section class="hub-intro">
+  <section class="hub-intro hub-reveal">
+    <span class="hub-eyebrow">Hub — TRYMOX</span>
     <h1>Mes projets</h1>
     <p>Développeur — outils, expérimentations, projets perso. Un point d'entrée unique vers ce que je construis : certains tournent en local sur cette machine, d'autres sont encore des ébauches.</p>
+    <div class="hub-intro-actions">
+      <a href="#hub-outils" class="hub-btn hub-btn-accent">Voir les outils ↓</a>
+      <button type="button" class="hub-btn hub-btn-ghost" id="heroNewProjectBtn">+ Nouveau projet</button>
+    </div>
     <div class="hub-stats" id="hubStats"></div>
   </section>
 
-  <section class="hub-panel">
+  <div class="hub-benefits hub-reveal">
+    <div class="hub-benefit">
+      <span class="hub-benefit-icon">🔒</span>
+      <h3>100 % local</h3>
+      <p>Aucune donnée n'est envoyée ailleurs — tout tourne sur cette machine.</p>
+    </div>
+    <div class="hub-benefit">
+      <span class="hub-benefit-icon">🔗</span>
+      <h3>9 outils reliés</h3>
+      <p>Un point d'entrée unique vers tout ce qui tourne ici.</p>
+    </div>
+    <div class="hub-benefit">
+      <span class="hub-benefit-icon">🔍</span>
+      <h3>Recherche globale</h3>
+      <p>Retrouve une base, une tâche ou un snippet en un clic.</p>
+    </div>
+    <div class="hub-benefit">
+      <span class="hub-benefit-icon">🧩</span>
+      <h3>Projets multi-outils</h3>
+      <p>Relie base, site et suivi de tâches autour d'un même projet.</p>
+    </div>
+  </div>
+
+  <div class="hub-marquee" aria-hidden="true">
+    <div class="hub-marquee-track" id="hubMarqueeTrack"></div>
+  </div>
+
+  <section class="hub-panel hub-reveal">
     <div class="hub-panel-header">
-      <h2>Projets</h2>
+      <div>
+        <span class="hub-eyebrow">Projets</span>
+        <h2>Projets</h2>
+      </div>
       <button type="button" class="hub-btn hub-btn-accent" id="newHubProjectBtn">+ Nouveau projet</button>
     </div>
     <p class="placeholder-text hub-project-intro">Un projet réel peut utiliser plusieurs outils à la fois (une base, un site, un suivi de tâches) — relie-les ici pour sauter directement sur la bonne ressource.</p>
@@ -49,14 +86,17 @@
     <p class="placeholder-text" id="hubProjectGridEmpty" style="display:none;">Aucun projet pour l'instant — crée-en un pour relier plusieurs outils ensemble.</p>
   </section>
 
-  <section class="hub-panel">
+  <section class="hub-panel hub-reveal" id="hub-outils">
     <div class="hub-panel-header">
-      <h2>Outils</h2>
+      <div>
+        <span class="hub-eyebrow">Outils</span>
+        <h2>Outils</h2>
+      </div>
     </div>
     <div class="hub-grid" id="projectGrid"></div>
   </section>
 
-  <section class="hub-panel hub-about">
+  <section class="hub-panel hub-about hub-reveal">
     <div class="hub-avatar hub-avatar-lg">T</div>
     <div>
       <h2>À propos</h2>
@@ -116,7 +156,10 @@
   <div class="modal modal-hub-project-detail">
     <button type="button" class="modal-close" id="hubProjectDetailClose" aria-label="Fermer">×</button>
     <div class="hpd-header">
-      <h2 id="hpdName"></h2>
+      <div class="hpd-header-top">
+        <h2 id="hpdName"></h2>
+        <a id="hpdWikiLink" class="hub-btn hub-btn-accent hpd-wiki-btn" href="#">📄 Page wiki</a>
+      </div>
       <p class="hpd-desc" id="hpdDesc"></p>
     </div>
     <div class="hpd-body">

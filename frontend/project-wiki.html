@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page wiki — TRYMOX</title>
+<link rel="stylesheet" href="style.css">
+<!-- police d'affichage propre à cette page (thème fixe, indépendant du
+     clair/sombre du reste du hub) — chargée ici plutôt que dans le style.css
+     partagé pour ne pas alourdir les autres pages qui ne l'utilisent pas -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap">
+</head>
+<body class="wiki-body">
+
+<div class="wiki-topbanner"></div>
+
+<header class="wiki-topbar">
+  <div class="wiki-topbar-inner">
+    <a href="/" class="wiki-back-btn">← Hub</a>
+    <div class="wiki-brand"><span class="wiki-brand-mark">📖</span>Wiki de projet</div>
+  </div>
+</header>
+
+<main class="wiki-page">
+  <p id="wikiLoading" class="wiki-placeholder">Chargement…</p>
+  <p id="wikiError" class="wiki-placeholder" style="display:none;"></p>
+
+  <div id="wikiContent" class="wiki-layout" style="display:none;">
+    <nav class="wiki-toc" id="wikiToc" aria-label="Sommaire"></nav>
+    <div class="wiki-main">
+      <header class="wiki-header">
+        <h1 id="wikiName"></h1>
+        <p id="wikiDesc" class="wiki-desc"></p>
+        <div class="wiki-header-stats">
+          <span class="wiki-header-stat" id="wikiToolCount"></span>
+          <span id="wikiUpdated" class="wiki-updated"></span>
+        </div>
+      </header>
+      <h2 class="wiki-band">Aperçu</h2>
+      <div id="wikiCardGrid" class="wiki-card-grid"></div>
+      <h2 class="wiki-band">Détails</h2>
+      <div id="wikiSections" class="wiki-sections"></div>
+    </div>
+  </div>
+</main>
+
+<script src="project-wiki.js"></script>
+</body>
+</html>
