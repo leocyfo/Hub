@@ -26,6 +26,7 @@ const TOOLS = [
   { key: 'themeforge', port: 4900, dir: path.join(PROJET_DIR, 'ThemeForge') },
   { key: 'flowmap', port: 5000, dir: path.join(PROJET_DIR, 'FlowMap') },
   { key: 'apitester', port: 5100, dir: path.join(PROJET_DIR, 'APITester') },
+  { key: 'gdd', port: 5200, dir: path.join(PROJET_DIR, 'GDD') },
 ];
 
 // mêmes ressources que HUB_TOOLS côté frontend (voir frontend/script.js),
@@ -117,6 +118,13 @@ const SEARCH_RESOURCES = [
     key: 'apitester', label: 'APITester', path: '/api/history', idField: 'id', labelField: 'label', linkParam: 'history',
     kind: 'request',
     summarize: (item) => ({ method: item.method, url: item.url, label: item.label || '' }),
+  },
+  {
+    key: 'gdd', label: 'GDD Épicerie Tycoon', path: '/api/document', idField: 'id', labelField: 'name', linkParam: 'doc',
+    kind: 'document',
+    // pas de résumé compact utile pour un document — la page wiki lui réserve
+    // un panneau à part (iframe pleine page) plutôt qu'une carte de stats
+    summarize: () => ({}),
   },
 ];
 
@@ -395,7 +403,13 @@ for (const { key, port, cookiePathRewrite } of tools) {
   }));
 }
 
-app.use(express.static(FRONTEND_DIR));
+// no-cache plutôt que la valeur par défaut d'express.static (qui laisse le
+// navigateur réutiliser une vieille version sans revalider) — ce hub change
+// souvent pendant qu'on le regarde, mieux vaut resservir à chaque requête
+// que de devoir deviner s'il faut vider le cache pour voir un changement
+app.use(express.static(FRONTEND_DIR, {
+  setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache'),
+}));
 
 function shutdown() {
   console.log('\nArrêt du hub...');

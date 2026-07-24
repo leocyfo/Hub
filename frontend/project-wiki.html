@@ -18,7 +18,10 @@
 <header class="wiki-topbar">
   <div class="wiki-topbar-inner">
     <a href="/" class="wiki-back-btn">← Hub</a>
-    <div class="wiki-brand"><span class="wiki-brand-mark">📖</span>Wiki de projet</div>
+    <div class="wiki-brand"><span class="wiki-brand-mark">📖</span><span id="wikiBrandName">Wiki de projet</span></div>
+    <div class="wiki-topbar-actions">
+      <a href="#" id="wikiEditBtn" class="wiki-edit-btn" title="Voir et modifier le contenu réel des outils liés (PlanBoard, FlowMap...)">✏ Éditer</a>
+    </div>
   </div>
 </header>
 
@@ -26,22 +29,12 @@
   <p id="wikiLoading" class="wiki-placeholder">Chargement…</p>
   <p id="wikiError" class="wiki-placeholder" style="display:none;"></p>
 
-  <div id="wikiContent" class="wiki-layout" style="display:none;">
-    <nav class="wiki-toc" id="wikiToc" aria-label="Sommaire"></nav>
-    <div class="wiki-main">
-      <header class="wiki-header">
-        <h1 id="wikiName"></h1>
-        <p id="wikiDesc" class="wiki-desc"></p>
-        <div class="wiki-header-stats">
-          <span class="wiki-header-stat" id="wikiToolCount"></span>
-          <span id="wikiUpdated" class="wiki-updated"></span>
-        </div>
-      </header>
-      <h2 class="wiki-band">Aperçu</h2>
-      <div id="wikiCardGrid" class="wiki-card-grid"></div>
-      <h2 class="wiki-band">Détails</h2>
-      <div id="wikiSections" class="wiki-sections"></div>
-    </div>
+  <div id="wikiContent" style="display:none;">
+    <nav id="wikiTabs" class="wiki-tabs"></nav>
+    <nav id="wikiSubTabs" class="wiki-subtabs" style="display:none;"></nav>
+    <p id="wikiEmpty" class="wiki-placeholder" style="display:none;">Aucun outil lié à ce projet pour l'instant — clique « Éditer » pour en relier un.</p>
+    <p id="wikiLienCasse" class="wiki-placeholder wiki-lien-casse" style="display:none;"></p>
+    <iframe id="wikiViewFrame" class="wiki-view-frame" title="Ressource sélectionnée"></iframe>
   </div>
 </main>
 

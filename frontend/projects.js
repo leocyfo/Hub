@@ -124,6 +124,17 @@ const PROJECTS = [
     localUrl: null,
     hostedPath: '/apitester/',
   },
+  {
+    name: 'GDD Épicerie Tycoon',
+    tagline: "Document de design de jeu, avec flowcharts et calculateur d'équilibrage",
+    description: "Visualiseur du GDD d'Épicerie Tycoon (tycoon Godot) : sommaire navigable, 5 diagrammes Mermaid, schéma de données ERD, calculateur des formules de prix/demande et d'achalandage, feuille de route interactive.",
+    tech: ['Node.js', 'Express', 'JS vanilla', 'Mermaid'],
+    status: 'En développement actif',
+    repoUrl: null,
+    localCommand: 'node backend/server.js',
+    localUrl: null,
+    hostedPath: '/gdd/',
+  },
 ];
 
 // liens affichés sous la bio À propos — jamais inventés, uniquement des

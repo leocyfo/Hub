@@ -375,16 +375,6 @@ const toolConfigReady = (async () => {
   }
 })();
 
-// chaque outil n'utilise pas le même nom de paramètre d'URL pour son lien
-// direct (voir hubTools[].linkParam et les modifications apportées à
-// chaque frontend respectif : ?db= pour DataSite, ?project= pour
-// SiteBuilder/PlanBoard, ?vault= pour EnvKeeper)
-function hubProjectLinkHref(link) {
-  const toolDef = hubTools.find((t) => t.key === link.tool);
-  const param = toolDef ? toolDef.linkParam : 'id';
-  return `/${link.tool}/?${param}=${encodeURIComponent(link.resourceId)}`;
-}
-
 let hubProjects = [];
 let hubToolResources = {};
 let editingHubProjectName = null;
@@ -467,129 +457,11 @@ function closeHubProjectModal() {
   document.getElementById('hubProjectModalOverlay').classList.remove('open');
 }
 
-// ---------- Vue détail (sidebar + aperçu en direct de chaque outil lié) ----------
-//
-// Plutôt que de reconstruire un résumé de chaque outil dans le hub (9 rendus
-// différents à maintenir en double), l'onglet sélectionné dans la sidebar
-// charge directement la vraie page de l'outil dans une iframe, à l'URL de
-// lien direct déjà calculée par hubProjectLinkHref() — même origine que le
-// hub (tout est proxifié sous le même host:port), donc aucun souci de
-// restriction de cadrage/CORS.
-
-let hpdActiveIndex = 0;
-
-function renderHpdSidebar(project, brokenIndices) {
-  return project.links.map((l, i) => {
-    const toolDef = hubTools.find((t) => t.key === l.tool);
-    const toolLabel = toolDef ? toolDef.label : l.tool;
-    const isBroken = !!(brokenIndices && brokenIndices.has(i));
-    const brokenTitle = isBroken ? `title="Ressource introuvable — a peut-être été renommée ou supprimée dans ${escapeHtml(toolLabel)}"` : '';
-    return `
-      <button type="button" class="hpd-sidebar-item${i === hpdActiveIndex ? ' active' : ''}${isBroken ? ' broken' : ''}" data-href="${escapeHtml(hubProjectLinkHref(l))}" ${brokenTitle}>
-        <span class="hpd-sidebar-tool">${escapeHtml(toolLabel)}${isBroken ? ' ⚠' : ''}</span>
-        <span class="hpd-sidebar-label">${escapeHtml(l.label)}</span>
-      </button>
-    `;
-  }).join('');
-}
-
-// vérifie que chaque ressource liée existe toujours dans son outil
-// d'origine — un lien peut devenir obsolète silencieusement si la
-// ressource a été renommée ou supprimée depuis l'outil lui-même (le hub ne
-// le sait pas tant qu'il ne revérifie pas). Un outil injoignable n'est
-// JAMAIS traité comme un lien cassé : on ne peut pas savoir, donc on
-// s'abstient plutôt que d'accuser à tort.
-async function validateHubProjectLinks(links) {
-  await toolConfigReady;
-  const toolKeys = [...new Set(links.map((l) => l.tool))];
-  const idsByTool = {};
-  await Promise.all(toolKeys.map(async (toolKey) => {
-    const toolDef = hubTools.find((t) => t.key === toolKey);
-    if (!toolDef) { idsByTool[toolKey] = null; return; }
-    try {
-      const res = await fetch(toolDef.resourceEndpoint);
-      if (!res.ok) { idsByTool[toolKey] = null; return; }
-      const list = await res.json();
-      idsByTool[toolKey] = new Set(list.map((item) => String(item[toolDef.idField])));
-    } catch {
-      idsByTool[toolKey] = null;
-    }
-  }));
-
-  const broken = new Set();
-  links.forEach((l, i) => {
-    const ids = idsByTool[l.tool];
-    if (ids === null) return; // outil injoignable, on ignore ce lien pour cette passe
-    if (!ids.has(l.resourceId)) broken.add(i);
-  });
-  return broken;
-}
-
-async function openHubProjectDetail(project) {
-  await toolConfigReady;
-  document.getElementById('hpdName').textContent = project.name;
-  document.getElementById('hpdWikiLink').href = `project-wiki.html?project=${encodeURIComponent(project.name)}`;
-  const descEl = document.getElementById('hpdDesc');
-  descEl.textContent = project.description || '';
-  descEl.style.display = project.description ? 'block' : 'none';
-
-  const sidebarEl = document.getElementById('hpdSidebar');
-  const iframeEl = document.getElementById('hpdIframe');
-  const emptyEl = document.getElementById('hpdEmpty');
-  hpdActiveIndex = 0;
-
-  if (project.links.length === 0) {
-    sidebarEl.innerHTML = '';
-    iframeEl.style.display = 'none';
-    iframeEl.src = 'about:blank';
-    emptyEl.style.display = 'block';
-  } else {
-    emptyEl.style.display = 'none';
-    iframeEl.style.display = 'block';
-    sidebarEl.innerHTML = renderHpdSidebar(project, null);
-    iframeEl.src = hubProjectLinkHref(project.links[0]);
-
-    // validation asynchrone, appliquée après coup — ne bloque jamais
-    // l'ouverture de la vue détail ; ignorée si l'utilisateur a depuis
-    // fermé cette vue ou ouvert un autre projet
-    validateHubProjectLinks(project.links).then((brokenIndices) => {
-      if (!document.getElementById('hubProjectDetailOverlay').classList.contains('open')) return;
-      if (document.getElementById('hpdName').textContent !== project.name) return;
-      sidebarEl.innerHTML = renderHpdSidebar(project, brokenIndices);
-    });
-  }
-
-  document.getElementById('hubProjectDetailOverlay').classList.add('open');
-}
-
-function closeHubProjectDetail() {
-  document.getElementById('hubProjectDetailOverlay').classList.remove('open');
-  // libère la page chargée dans l'iframe plutôt que de la laisser tourner
-  // (timers, connexions...) en arrière-plan une fois la modale fermée
-  document.getElementById('hpdIframe').src = 'about:blank';
-}
-
-document.getElementById('hpdSidebar').addEventListener('click', (e) => {
-  const btn = e.target.closest('.hpd-sidebar-item');
-  if (!btn) return;
-  const items = [...document.querySelectorAll('.hpd-sidebar-item')];
-  hpdActiveIndex = items.indexOf(btn); // préservé si la sidebar se re-rend après validation
-  items.forEach((b) => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('hpdIframe').src = btn.dataset.href;
-});
-
-document.getElementById('hubProjectDetailClose').addEventListener('click', closeHubProjectDetail);
-document.getElementById('hubProjectDetailOverlay').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('hubProjectDetailOverlay')) closeHubProjectDetail();
-});
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && document.getElementById('hubProjectDetailOverlay').classList.contains('open')) closeHubProjectDetail();
-});
-
-// clic sur la carte = vue détail (sidebar + aperçu en direct) ; clic sur le
-// crayon = édition — les deux sont dans le même élément carte, donc le
-// bouton doit être exclu explicitement avant de retomber sur le comportement
+// clic sur la carte = page wiki (onglets plein écran d'une ressource liée à
+// la fois, GDD en premier s'il y en a un) ; clic sur le crayon = édition du
+// projet lui-même (nom/description/liens) — les deux sont dans le même
+// élément carte, donc le bouton doit être exclu explicitement avant de
+// retomber sur le comportement
 // par défaut (comme .hub-project-link l'était avant sur ces mêmes cartes)
 document.getElementById('hubProjectGrid').addEventListener('click', (e) => {
   const card = e.target.closest('.hub-project-card');
@@ -600,7 +472,7 @@ document.getElementById('hubProjectGrid').addEventListener('click', (e) => {
     openHubProjectModal(project);
     return;
   }
-  openHubProjectDetail(project);
+  window.location.href = `project-wiki.html?project=${encodeURIComponent(project.name)}`;
 });
 
 document.getElementById('hubProjectGrid').addEventListener('keydown', (e) => {
@@ -610,7 +482,7 @@ document.getElementById('hubProjectGrid').addEventListener('keydown', (e) => {
   if (!card) return;
   e.preventDefault();
   const project = hubProjects.find((p) => p.name === card.dataset.hubProject);
-  if (project) openHubProjectDetail(project);
+  if (project) window.location.href = `project-wiki.html?project=${encodeURIComponent(project.name)}`;
 });
 
 document.getElementById('newHubProjectBtn').addEventListener('click', () => openHubProjectModal(null));
@@ -662,6 +534,17 @@ document.getElementById('hubProjectDeleteBtn').addEventListener('click', async (
   await loadHubProjects();
 });
 
+// point d'entrée du bouton "Éditer" de project-wiki.html (?openEditModal=<nom>) :
+// les onglets de la page wiki couvrent maintenant la navigation entre
+// ressources liées, donc "Éditer" ouvre directement l'édition du projet
+// (nom/description/liens) plutôt qu'une vue de navigation intermédiaire
+function openEditModalFromQueryParam() {
+  const toOpen = new URLSearchParams(location.search).get('openEditModal');
+  if (!toOpen) return;
+  const project = hubProjects.find((p) => p.name === toOpen);
+  if (project) openHubProjectModal(project);
+}
+
 // exposé pour le harnais de vérification (jsdom), qui peut ainsi attendre la
 // fin du premier chargement au lieu de deviner un délai
-window.__hubProjectsReady = loadHubProjects();
+window.__hubProjectsReady = loadHubProjects().then(openEditModalFromQueryParam);
