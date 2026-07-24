@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page wiki — TRYMOX</title>
+<link rel="stylesheet" href="style.css">
+<!-- police d'affichage propre à cette page (thème fixe, indépendant du
+     clair/sombre du reste du hub) — chargée ici plutôt que dans le style.css
+     partagé pour ne pas alourdir les autres pages qui ne l'utilisent pas -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap">
+</head>
+<body class="wiki-body">
+
+<div class="wiki-topbanner"></div>
+
+<header class="wiki-topbar">
+  <div class="wiki-topbar-inner">
+    <a href="/" class="wiki-back-btn">← Hub</a>
+    <div class="wiki-brand"><span class="wiki-brand-mark">📖</span><span id="wikiBrandName">Wiki de projet</span></div>
+    <div class="wiki-topbar-actions">
+      <a href="#" id="wikiEditBtn" class="wiki-edit-btn" title="Voir et modifier le contenu réel des outils liés (PlanBoard, FlowMap...)">✏ Éditer</a>
+    </div>
+  </div>
+</header>
+
+<main class="wiki-page">
+  <p id="wikiLoading" class="wiki-placeholder">Chargement…</p>
+  <p id="wikiError" class="wiki-placeholder" style="display:none;"></p>
+
+  <div id="wikiContent" style="display:none;">
+    <nav id="wikiTabs" class="wiki-tabs"></nav>
+    <nav id="wikiSubTabs" class="wiki-subtabs" style="display:none;"></nav>
+    <p id="wikiEmpty" class="wiki-placeholder" style="display:none;">Aucun outil lié à ce projet pour l'instant — clique « Éditer » pour en relier un.</p>
+    <p id="wikiLienCasse" class="wiki-placeholder wiki-lien-casse" style="display:none;"></p>
+    <iframe id="wikiViewFrame" class="wiki-view-frame" title="Ressource sélectionnée"></iframe>
+  </div>
+</main>
+
+<script src="project-wiki.js"></script>
+</body>
+</html>

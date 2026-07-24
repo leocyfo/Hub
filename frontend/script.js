@@ -45,6 +45,25 @@ function toggleTheme() {
 document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
 updateThemeToggleButton();
 
+// ---------- Défilement en fondu ----------
+// appliqué seulement aux sections (.hub-intro, .hub-panel) qui ne sont
+// jamais recréées après le premier rendu — surtout PAS aux cartes des
+// grilles à l'intérieur, qui sont regénérées toutes les 20s par
+// refreshToolStatus() : y attacher cette animation la rejouerait en boucle
+if ('IntersectionObserver' in window) {
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+  document.querySelectorAll('.hub-reveal').forEach((el) => revealObserver.observe(el));
+} else {
+  document.querySelectorAll('.hub-reveal').forEach((el) => el.classList.add('is-visible'));
+}
+
 // classe de couleur de la pastille de statut, déduite du texte libre du champ
 // "status" (pas d'enum dédié dans projects.js, donc match par mot-clé)
 function statusClass(status) {
@@ -148,7 +167,30 @@ function renderGrid(list, showGhost) {
   document.getElementById('projectGrid').innerHTML = showGhost ? cardsHtml + GHOST_CARD_HTML : cardsHtml;
 }
 
+// ---------- Bandeau défilant ----------
+// purement décoratif (aria-hidden, non cliquable) — rendu UNE SEULE FOIS au
+// chargement, jamais depuis refreshToolStatus() : reconstruire ce DOM
+// toutes les 20s couperait l'animation CSS en boucle et la ferait
+// bégayer visiblement à chaque rafraîchissement du statut
+function renderMarqueeItem(project) {
+  const initial = project.name.trim().charAt(0).toUpperCase();
+  return `
+    <div class="hub-marquee-item">
+      <span class="hub-marquee-item-thumb" style="--swatch-bg:${swatchColor(project.name)}">${escapeHtml(initial)}</span>
+      <span class="hub-marquee-item-name">${escapeHtml(project.name)}</span>
+    </div>
+  `;
+}
+
+function renderMarquee(list) {
+  // le texte est dupliqué une fois pour boucler sans coupure visible :
+  // l'animation glisse de 0 à -50%, pile la largeur d'une copie
+  const itemsHtml = list.map(renderMarqueeItem).join('');
+  document.getElementById('hubMarqueeTrack').innerHTML = itemsHtml + itemsHtml;
+}
+
 renderGrid(PROJECTS, PROJECTS.length < GHOST_THRESHOLD);
+renderMarquee(PROJECTS);
 document.getElementById('hubYear').textContent = new Date().getFullYear();
 
 const hostedCount = PROJECTS.filter((p) => p.hostedPath).length;
@@ -318,27 +360,20 @@ document.addEventListener('keydown', (e) => {
 // outil (le hub proxifie déjà /datasite, /sitebuilder, /planboard, donc ces
 // fetch passent par la même origine, pas de souci CORS) ----------
 
-const HUB_TOOLS = [
-  { key: 'datasite', label: 'DataSite', resourceEndpoint: '/datasite/api/databases', idField: 'id', labelField: 'name', linkParam: 'db' },
-  { key: 'sitebuilder', label: 'SiteBuilder', resourceEndpoint: '/sitebuilder/api/projects', idField: 'name', labelField: 'name', linkParam: 'project' },
-  { key: 'planboard', label: 'PlanBoard', resourceEndpoint: '/planboard/api/projects', idField: 'name', labelField: 'name', linkParam: 'project' },
-  { key: 'envkeeper', label: 'EnvKeeper', resourceEndpoint: '/envkeeper/api/vaults', idField: 'name', labelField: 'name', linkParam: 'vault' },
-  { key: 'snippetbox', label: 'SnippetBox', resourceEndpoint: '/snippetbox/api/snippets', idField: 'id', labelField: 'title', linkParam: 'snippet' },
-  { key: 'moodboard', label: 'Moodboard', resourceEndpoint: '/moodboard/api/boards', idField: 'name', labelField: 'name', linkParam: 'board' },
-  { key: 'themeforge', label: 'ThemeForge', resourceEndpoint: '/themeforge/api/palettes', idField: 'id', labelField: 'name', linkParam: 'palette' },
-  { key: 'flowmap', label: 'FlowMap', resourceEndpoint: '/flowmap/api/flows', idField: 'name', labelField: 'name', linkParam: 'flow' },
-  { key: 'apitester', label: 'APITester', resourceEndpoint: '/apitester/api/history', idField: 'id', labelField: 'label', linkParam: 'history' },
-];
-
-// chaque outil n'utilise pas le même nom de paramètre d'URL pour son lien
-// direct (voir HUB_TOOLS[].linkParam et les modifications apportées à
-// chaque frontend respectif : ?db= pour DataSite, ?project= pour
-// SiteBuilder/PlanBoard, ?vault= pour EnvKeeper)
-function hubProjectLinkHref(link) {
-  const toolDef = HUB_TOOLS.find((t) => t.key === link.tool);
-  const param = toolDef ? toolDef.linkParam : 'id';
-  return `/${link.tool}/?${param}=${encodeURIComponent(link.resourceId)}`;
-}
+// construite au démarrage à partir de GET /api/tool-config (dérivé côté
+// serveur de SEARCH_RESOURCES) plutôt que retapée en dur ici — évite d'avoir
+// deux listes des 9 outils maintenues séparément à la main. resourceEndpoint
+// se déduit de key+path, exactement comme le fait le backend en interne.
+let hubTools = [];
+const toolConfigReady = (async () => {
+  try {
+    const res = await fetch('/api/tool-config');
+    const config = res.ok ? await res.json() : [];
+    hubTools = config.map((t) => ({ ...t, resourceEndpoint: `/${t.key}${t.path}` }));
+  } catch {
+    hubTools = [];
+  }
+})();
 
 let hubProjects = [];
 let hubToolResources = {};
@@ -372,7 +407,8 @@ function renderHubProjectGrid() {
 // interroge les 3 outils pour peupler les sélecteurs de ressource — un outil
 // injoignable ne bloque pas les autres, sa liste reste juste vide
 async function loadHubToolResources() {
-  const entries = await Promise.all(HUB_TOOLS.map(async (t) => {
+  await toolConfigReady;
+  const entries = await Promise.all(hubTools.map(async (t) => {
     try {
       const res = await fetch(t.resourceEndpoint);
       if (!res.ok) return [t.key, []];
@@ -387,7 +423,7 @@ async function loadHubToolResources() {
 
 function renderHubProjectToolLinks(existingLinks) {
   const existingByTool = Object.fromEntries((existingLinks || []).map((l) => [l.tool, l.resourceId]));
-  return HUB_TOOLS.map((t) => {
+  return hubTools.map((t) => {
     const resources = hubToolResources[t.key] || [];
     const options = ['<option value="">— aucun —</option>']
       .concat(resources.map((r) => `<option value="${escapeHtml(r.id)}"${existingByTool[t.key] === r.id ? ' selected' : ''}>${escapeHtml(r.label)}</option>`))
@@ -421,126 +457,11 @@ function closeHubProjectModal() {
   document.getElementById('hubProjectModalOverlay').classList.remove('open');
 }
 
-// ---------- Vue détail (sidebar + aperçu en direct de chaque outil lié) ----------
-//
-// Plutôt que de reconstruire un résumé de chaque outil dans le hub (9 rendus
-// différents à maintenir en double), l'onglet sélectionné dans la sidebar
-// charge directement la vraie page de l'outil dans une iframe, à l'URL de
-// lien direct déjà calculée par hubProjectLinkHref() — même origine que le
-// hub (tout est proxifié sous le même host:port), donc aucun souci de
-// restriction de cadrage/CORS.
-
-let hpdActiveIndex = 0;
-
-function renderHpdSidebar(project, brokenIndices) {
-  return project.links.map((l, i) => {
-    const toolDef = HUB_TOOLS.find((t) => t.key === l.tool);
-    const toolLabel = toolDef ? toolDef.label : l.tool;
-    const isBroken = !!(brokenIndices && brokenIndices.has(i));
-    const brokenTitle = isBroken ? `title="Ressource introuvable — a peut-être été renommée ou supprimée dans ${escapeHtml(toolLabel)}"` : '';
-    return `
-      <button type="button" class="hpd-sidebar-item${i === hpdActiveIndex ? ' active' : ''}${isBroken ? ' broken' : ''}" data-href="${escapeHtml(hubProjectLinkHref(l))}" ${brokenTitle}>
-        <span class="hpd-sidebar-tool">${escapeHtml(toolLabel)}${isBroken ? ' ⚠' : ''}</span>
-        <span class="hpd-sidebar-label">${escapeHtml(l.label)}</span>
-      </button>
-    `;
-  }).join('');
-}
-
-// vérifie que chaque ressource liée existe toujours dans son outil
-// d'origine — un lien peut devenir obsolète silencieusement si la
-// ressource a été renommée ou supprimée depuis l'outil lui-même (le hub ne
-// le sait pas tant qu'il ne revérifie pas). Un outil injoignable n'est
-// JAMAIS traité comme un lien cassé : on ne peut pas savoir, donc on
-// s'abstient plutôt que d'accuser à tort.
-async function validateHubProjectLinks(links) {
-  const toolKeys = [...new Set(links.map((l) => l.tool))];
-  const idsByTool = {};
-  await Promise.all(toolKeys.map(async (toolKey) => {
-    const toolDef = HUB_TOOLS.find((t) => t.key === toolKey);
-    if (!toolDef) { idsByTool[toolKey] = null; return; }
-    try {
-      const res = await fetch(toolDef.resourceEndpoint);
-      if (!res.ok) { idsByTool[toolKey] = null; return; }
-      const list = await res.json();
-      idsByTool[toolKey] = new Set(list.map((item) => String(item[toolDef.idField])));
-    } catch {
-      idsByTool[toolKey] = null;
-    }
-  }));
-
-  const broken = new Set();
-  links.forEach((l, i) => {
-    const ids = idsByTool[l.tool];
-    if (ids === null) return; // outil injoignable, on ignore ce lien pour cette passe
-    if (!ids.has(l.resourceId)) broken.add(i);
-  });
-  return broken;
-}
-
-function openHubProjectDetail(project) {
-  document.getElementById('hpdName').textContent = project.name;
-  const descEl = document.getElementById('hpdDesc');
-  descEl.textContent = project.description || '';
-  descEl.style.display = project.description ? 'block' : 'none';
-
-  const sidebarEl = document.getElementById('hpdSidebar');
-  const iframeEl = document.getElementById('hpdIframe');
-  const emptyEl = document.getElementById('hpdEmpty');
-  hpdActiveIndex = 0;
-
-  if (project.links.length === 0) {
-    sidebarEl.innerHTML = '';
-    iframeEl.style.display = 'none';
-    iframeEl.src = 'about:blank';
-    emptyEl.style.display = 'block';
-  } else {
-    emptyEl.style.display = 'none';
-    iframeEl.style.display = 'block';
-    sidebarEl.innerHTML = renderHpdSidebar(project, null);
-    iframeEl.src = hubProjectLinkHref(project.links[0]);
-
-    // validation asynchrone, appliquée après coup — ne bloque jamais
-    // l'ouverture de la vue détail ; ignorée si l'utilisateur a depuis
-    // fermé cette vue ou ouvert un autre projet
-    validateHubProjectLinks(project.links).then((brokenIndices) => {
-      if (!document.getElementById('hubProjectDetailOverlay').classList.contains('open')) return;
-      if (document.getElementById('hpdName').textContent !== project.name) return;
-      sidebarEl.innerHTML = renderHpdSidebar(project, brokenIndices);
-    });
-  }
-
-  document.getElementById('hubProjectDetailOverlay').classList.add('open');
-}
-
-function closeHubProjectDetail() {
-  document.getElementById('hubProjectDetailOverlay').classList.remove('open');
-  // libère la page chargée dans l'iframe plutôt que de la laisser tourner
-  // (timers, connexions...) en arrière-plan une fois la modale fermée
-  document.getElementById('hpdIframe').src = 'about:blank';
-}
-
-document.getElementById('hpdSidebar').addEventListener('click', (e) => {
-  const btn = e.target.closest('.hpd-sidebar-item');
-  if (!btn) return;
-  const items = [...document.querySelectorAll('.hpd-sidebar-item')];
-  hpdActiveIndex = items.indexOf(btn); // préservé si la sidebar se re-rend après validation
-  items.forEach((b) => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('hpdIframe').src = btn.dataset.href;
-});
-
-document.getElementById('hubProjectDetailClose').addEventListener('click', closeHubProjectDetail);
-document.getElementById('hubProjectDetailOverlay').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('hubProjectDetailOverlay')) closeHubProjectDetail();
-});
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && document.getElementById('hubProjectDetailOverlay').classList.contains('open')) closeHubProjectDetail();
-});
-
-// clic sur la carte = vue détail (sidebar + aperçu en direct) ; clic sur le
-// crayon = édition — les deux sont dans le même élément carte, donc le
-// bouton doit être exclu explicitement avant de retomber sur le comportement
+// clic sur la carte = page wiki (onglets plein écran d'une ressource liée à
+// la fois, GDD en premier s'il y en a un) ; clic sur le crayon = édition du
+// projet lui-même (nom/description/liens) — les deux sont dans le même
+// élément carte, donc le bouton doit être exclu explicitement avant de
+// retomber sur le comportement
 // par défaut (comme .hub-project-link l'était avant sur ces mêmes cartes)
 document.getElementById('hubProjectGrid').addEventListener('click', (e) => {
   const card = e.target.closest('.hub-project-card');
@@ -551,7 +472,7 @@ document.getElementById('hubProjectGrid').addEventListener('click', (e) => {
     openHubProjectModal(project);
     return;
   }
-  openHubProjectDetail(project);
+  window.location.href = `project-wiki.html?project=${encodeURIComponent(project.name)}`;
 });
 
 document.getElementById('hubProjectGrid').addEventListener('keydown', (e) => {
@@ -561,10 +482,13 @@ document.getElementById('hubProjectGrid').addEventListener('keydown', (e) => {
   if (!card) return;
   e.preventDefault();
   const project = hubProjects.find((p) => p.name === card.dataset.hubProject);
-  if (project) openHubProjectDetail(project);
+  if (project) window.location.href = `project-wiki.html?project=${encodeURIComponent(project.name)}`;
 });
 
 document.getElementById('newHubProjectBtn').addEventListener('click', () => openHubProjectModal(null));
+// même action que newHubProjectBtn, juste un second point d'entrée depuis
+// le CTA secondaire de l'en-tête — pas de logique dupliquée
+document.getElementById('heroNewProjectBtn').addEventListener('click', () => openHubProjectModal(null));
 document.getElementById('hubProjectModalClose').addEventListener('click', closeHubProjectModal);
 document.getElementById('hubProjectModalOverlay').addEventListener('click', (e) => {
   if (e.target === document.getElementById('hubProjectModalOverlay')) closeHubProjectModal();
@@ -578,7 +502,7 @@ document.getElementById('hubProjectForm').addEventListener('submit', async (e) =
   const name = document.getElementById('hubProjectNameInput').value.trim();
   if (!name) return;
   const description = document.getElementById('hubProjectDescInput').value.trim();
-  const links = HUB_TOOLS.map((t) => {
+  const links = hubTools.map((t) => {
     const select = document.getElementById(`hubProjectLink_${t.key}`);
     const resourceId = select.value;
     if (!resourceId) return null;
@@ -610,6 +534,17 @@ document.getElementById('hubProjectDeleteBtn').addEventListener('click', async (
   await loadHubProjects();
 });
 
+// point d'entrée du bouton "Éditer" de project-wiki.html (?openEditModal=<nom>) :
+// les onglets de la page wiki couvrent maintenant la navigation entre
+// ressources liées, donc "Éditer" ouvre directement l'édition du projet
+// (nom/description/liens) plutôt qu'une vue de navigation intermédiaire
+function openEditModalFromQueryParam() {
+  const toOpen = new URLSearchParams(location.search).get('openEditModal');
+  if (!toOpen) return;
+  const project = hubProjects.find((p) => p.name === toOpen);
+  if (project) openHubProjectModal(project);
+}
+
 // exposé pour le harnais de vérification (jsdom), qui peut ainsi attendre la
 // fin du premier chargement au lieu de deviner un délai
-window.__hubProjectsReady = loadHubProjects();
+window.__hubProjectsReady = loadHubProjects().then(openEditModalFromQueryParam);

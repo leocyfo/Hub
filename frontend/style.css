@@ -26,6 +26,9 @@
   --danger-soft: rgba(209, 72, 58, 0.1);
 
   --header-bg:   rgba(255, 255, 255, 0.95);
+  /* transparente en clair : la texture de grille ne doit être visible
+     qu'en thème sombre, voir .hub-grid-texture */
+  --grid-line:   rgba(0, 0, 0, 0);
 
   --font-ui:     'Inter', sans-serif;
   --font-mono:   'IBM Plex Mono', monospace;
@@ -42,17 +45,20 @@
    la préférence système dans les deux sens */
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:          #14161a;
-    --panel:       #1b1e24;
-    --panel-2:     #21242b;
-    --border:      #2c3038;
-    --border-strong: #3a3f47;
-    --text:        #edeff2;
-    --text-dim:    #8b909c;
-    --text-faint:  #6b7280;
+    --bg:          #1c1a16;
+    --panel:       #26231d;
+    --panel-2:     #3a2f20;
+    --border:      #423d32;
+    --border-strong: #5a4a38;
+    --text:        #eeeae0;
+    --text-dim:    #b3ac9c;
+    --text-faint:  #8a8272;
 
-    --accent:      #5b9fe8;
-    --accent-soft: rgba(91, 159, 232, 0.16);
+    --accent:      #e0954a;
+    --accent-soft: rgba(224, 149, 74, 0.16);
+    /* le nouvel accent est assez clair — texte sombre dessus plutôt que
+       blanc, meilleur contraste (voir .hub-btn-accent) */
+    --on-accent:   #1c1a16;
     --ok:          #4fbf7a;
     --ok-soft:     rgba(79, 191, 122, 0.16);
     --info:        #5b9fe8;
@@ -64,24 +70,26 @@
     --danger:      #e8695a;
     --danger-soft: rgba(232, 105, 90, 0.16);
 
-    --header-bg:   rgba(20, 22, 26, 0.9);
+    --header-bg:   rgba(7, 8, 10, 0.75);
+    --grid-line:   rgba(255, 255, 255, 0.045);
     --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md:   0 8px 24px rgba(0, 0, 0, 0.45);
   }
 }
 
 :root[data-theme="dark"]{
-  --bg:          #14161a;
-  --panel:       #1b1e24;
-  --panel-2:     #21242b;
-  --border:      #2c3038;
-  --border-strong: #3a3f47;
-  --text:        #edeff2;
-  --text-dim:    #8b909c;
-  --text-faint:  #6b7280;
+  --bg:          #1c1a16;
+  --panel:       #26231d;
+  --panel-2:     #3a2f20;
+  --border:      #423d32;
+  --border-strong: #5a4a38;
+  --text:        #eeeae0;
+  --text-dim:    #b3ac9c;
+  --text-faint:  #8a8272;
 
-  --accent:      #5b9fe8;
-  --accent-soft: rgba(91, 159, 232, 0.16);
+  --accent:      #e0954a;
+  --accent-soft: rgba(224, 149, 74, 0.16);
+  --on-accent:   #1c1a16;
   --ok:          #4fbf7a;
   --ok-soft:     rgba(79, 191, 122, 0.16);
   --info:        #5b9fe8;
@@ -93,7 +101,8 @@
   --danger:      #e8695a;
   --danger-soft: rgba(232, 105, 90, 0.16);
 
-  --header-bg:   rgba(20, 22, 26, 0.9);
+  --header-bg:   rgba(7, 8, 10, 0.75);
+  --grid-line:   rgba(255, 255, 255, 0.045);
   --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md:   0 8px 24px rgba(0, 0, 0, 0.45);
 }
@@ -124,24 +133,44 @@ body{
   min-height: 100vh;
 }
 
+/* fine grille décorative en fond de page — invisible en thème clair
+   (--grid-line y est transparente), visible en sombre uniquement */
+.hub-grid-texture{
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 90%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 90%);
+}
+
+.hub-header, .hub-main, .hub-footer{ position: relative; z-index: 1; }
+
 /* ---------- EN-TÊTE ---------- */
 .hub-header{
   position: sticky;
-  top: 0;
+  top: 14px;
   z-index: 10;
-  background: var(--header-bg);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 24px;
+  padding: 0 24px;
 }
 
 .hub-header-inner{
-  max-width: 1100px;
+  max-width: 1040px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  background: var(--header-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 12px 10px 20px;
+  box-shadow: var(--shadow-md);
 }
 
 .hub-brand{
@@ -289,16 +318,136 @@ body{
   padding: 48px 24px 64px;
 }
 
+/* petite étiquette monospace en majuscules, façon "VISION"/"SMART" —
+   utilisée au-dessus des grands titres pour donner le ton avant l'effet */
+.hub-eyebrow{
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.hub-eyebrow::before{ content: '◆'; font-size: 8px; }
+
+/* défilement en fondu : appliqué uniquement aux sections statiques
+   (.hub-intro/.hub-panel), voir script.js pour l'IntersectionObserver */
+.hub-reveal{
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+}
+.hub-reveal.is-visible{ opacity: 1; transform: none; }
+
 .hub-intro{
-  margin-bottom: 36px;
-  max-width: 680px;
+  margin-bottom: 44px;
+  max-width: 720px;
 }
 
 .hub-intro h1{
-  font-size: clamp(26px, 3.6vw, 34px);
+  font-size: clamp(32px, 5vw, 52px);
   font-weight: 800;
-  letter-spacing: -0.3px;
-  margin-bottom: 12px;
+  letter-spacing: -0.8px;
+  line-height: 1.05;
+  margin-bottom: 14px;
+}
+
+:root[data-theme="dark"] .hub-intro h1{
+  background: linear-gradient(100deg, var(--text) 40%, var(--accent) 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .hub-intro h1{
+    background: linear-gradient(100deg, var(--text) 40%, var(--accent) 130%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* rangée icône + texte présentant ce que fait le hub concrètement — pas de
+   promesses marketing, seulement des propriétés réelles déjà implémentées */
+.hub-benefits{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 0 0 40px;
+}
+
+.hub-benefit{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.hub-benefit-icon{ font-size: 22px; display: block; margin-bottom: 10px; }
+.hub-benefit h3{ font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.hub-benefit p{ font-size: 12.5px; color: var(--text-dim); line-height: 1.5; }
+
+/* bandeau défilant : les 9 outils en boucle continue, purement décoratif
+   (voir aria-hidden dans le HTML) — masque en dégradé sur les bords pour
+   un effet de fondu plutôt qu'une coupure nette */
+.hub-marquee{
+  overflow: hidden;
+  margin: 0 0 44px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.hub-marquee-track{
+  display: flex;
+  width: max-content;
+  gap: 14px;
+  animation: hub-marquee-scroll 28s linear infinite;
+}
+.hub-marquee:hover .hub-marquee-track{ animation-play-state: paused; }
+
+@keyframes hub-marquee-scroll{
+  from{ transform: translateX(0); }
+  to{ transform: translateX(-50%); }
+}
+
+.hub-marquee-item{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 16px 8px 8px;
+}
+
+.hub-marquee-item-thumb{
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--swatch-bg, var(--accent));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.hub-marquee-item-name{
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .hub-marquee-track{ animation: none; }
 }
 
 .hub-intro p{
@@ -307,6 +456,22 @@ body{
   line-height: 1.6;
   max-width: 560px;
 }
+
+.hub-intro-actions{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+/* CTA secondaire : contour discret plutôt que remplissage, pour rester en
+   retrait du bouton principal (accent plein) tout en restant cliquable */
+.hub-btn-ghost{
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+}
+.hub-btn-ghost:hover{ border-color: var(--accent); color: var(--accent); }
 
 .hub-stats{
   display: flex;
@@ -341,24 +506,29 @@ body{
   box-shadow: var(--shadow-sm);
   padding: 24px;
   margin-bottom: 20px;
+  scroll-margin-top: 100px; /* le lien "Voir les outils ↓" ne doit pas cacher la section sous l'en-tête flottant sticky */
 }
 
 .hub-panel-header{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+  gap: 16px;
 }
 
+.hub-panel-header .hub-eyebrow{ margin-bottom: 6px; }
+
 .hub-panel-header h2{
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--text-faint);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text);
 }
 
 .hub-btn{
+  display: inline-flex;
+  align-items: center;
   background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -368,6 +538,7 @@ body{
   font-weight: 600;
   padding: 7px 12px;
   cursor: pointer;
+  text-decoration: none;
   transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
 }
 
@@ -376,7 +547,7 @@ body{
 .hub-btn-accent{
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent, #fff);
 }
 
 .hub-btn-accent:hover{ opacity: 0.9; }
@@ -425,12 +596,13 @@ body{
   border-radius: var(--radius-md);
   padding: 16px;
   cursor: pointer;
-  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.15s var(--ease);
 }
 
 .project-card:hover{
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
+  border-color: var(--accent);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28), 0 0 0 1px var(--accent-soft);
+  transform: translateY(-4px);
 }
 
 .project-card-thumb{
@@ -596,12 +768,13 @@ body{
   border-radius: var(--radius-md);
   padding: 16px;
   cursor: pointer;
-  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.15s var(--ease);
 }
 
 .hub-project-card:hover{
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
+  border-color: var(--accent);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28), 0 0 0 1px var(--accent-soft);
+  transform: translateY(-4px);
 }
 
 .hub-project-card-top{
@@ -732,115 +905,6 @@ body{
   padding-right: 24px;
 }
 
-/* ---------- Vue détail d'un projet-hub (page pleine, pas une modale
-   centrée : le clic sur une carte doit se sentir comme une navigation vers
-   une nouvelle page, pas comme l'ouverture d'une fenêtre flottante) ---------- */
-#hubProjectDetailOverlay{
-  background: var(--bg);
-  padding: 0;
-}
-
-.modal-hub-project-detail{
-  width: 100vw;
-  max-width: none;
-  height: 100vh;
-  max-height: none;
-  min-width: 0;
-  min-height: 0;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  display: flex;
-  flex-direction: column;
-  padding: 28px 40px;
-}
-
-.hpd-header{ padding-right: 36px; margin-bottom: 18px; flex-shrink: 0; }
-.hpd-header h2{ font-size: 24px; font-weight: 700; }
-.hpd-desc{ font-size: 14px; color: var(--text-dim); margin-top: 6px; }
-
-.modal-hub-project-detail .modal-close{
-  top: 24px;
-  right: 32px;
-  width: 36px;
-  height: 36px;
-  font-size: 24px;
-  border: 1px solid var(--border);
-}
-
-.hpd-body{
-  flex: 1;
-  display: flex;
-  gap: 16px;
-  min-height: 0;
-}
-
-.hpd-sidebar{
-  flex-shrink: 0;
-  width: 200px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  overflow-y: auto;
-}
-
-.hpd-sidebar-item{
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  cursor: pointer;
-  text-align: left;
-}
-
-.hpd-sidebar-item:hover{ border-color: var(--border-strong); }
-.hpd-sidebar-item.active{ border-color: var(--accent); background: var(--accent-soft); }
-
-/* lien dont la ressource n'existe plus dans son outil d'origine
-   (renommée/supprimée depuis, détecté par validateHubProjectLinks) — reste
-   cliquable (l'outil gère déjà l'absence de ressource sans planter), juste
-   signalé visuellement */
-.hpd-sidebar-item.broken{ border-style: dashed; opacity: 0.7; }
-.hpd-sidebar-item.broken .hpd-sidebar-label{ color: var(--text-dim); font-style: italic; }
-
-.hpd-sidebar-tool{ font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-faint); }
-.hpd-sidebar-item.active .hpd-sidebar-tool{ color: var(--accent); }
-.hpd-sidebar-label{ font-size: 12.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-
-.hpd-main{
-  flex: 1;
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  position: relative;
-  background: var(--panel);
-}
-
-.hpd-iframe{
-  width: 100%;
-  height: 100%;
-  border: none;
-  display: block;
-}
-
-.hpd-empty{
-  padding: 20px;
-  color: var(--text-dim);
-  font-size: 13px;
-  font-style: italic;
-}
-
-@media (max-width: 720px){
-  .modal-hub-project-detail{ padding: 16px; }
-  .hpd-body{ flex-direction: column; }
-  .hpd-sidebar{ width: 100%; flex-direction: row; flex-wrap: wrap; }
-}
-
 .hub-form-label{
   display: block;
   font-size: 12px;
@@ -962,4 +1026,203 @@ body{
     width: 100%;
     min-width: 0;
   }
+}
+
+/* ---------- Page wiki d'un projet-hub (page statique séparée, pas une
+   modale — voir project-wiki.html/.js). Thème fixe et volontairement
+   différent du reste du hub (pas de suivi clair/sombre), variables scopées
+   sous .wiki-body pour ne rien affecter ailleurs. ---------- */
+.wiki-body{
+  --wiki-bg:        #0b0912;
+  --wiki-panel:     #171320;
+  --wiki-panel-2:   #201a2c;
+  --wiki-border:    #372c49;
+  --wiki-accent:    #f0a830;
+  --wiki-accent-2:  #57c7ff;
+  --wiki-text:      #f2ecdf;
+  --wiki-text-dim:  #ad9fc9;
+  --wiki-text-faint:#6f6488;
+  --wiki-danger:    #ff6b6b;
+  --wiki-font-display: 'Space Grotesk', var(--font-ui);
+
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(240, 168, 48, 0.16), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 100% 0%, rgba(87, 199, 255, 0.10), transparent 55%),
+    var(--wiki-bg);
+  color: var(--wiki-text);
+  min-height: 100vh;
+}
+
+.wiki-topbanner{
+  height: 6px;
+  background: linear-gradient(90deg, var(--wiki-accent), #ff7a4d, var(--wiki-accent-2));
+}
+
+/* brun du thème sombre du GDD (--couleur-surface dans hub/projet/GDD/frontend/style.css)
+   plutôt que le violet de fond de la page wiki (--wiki-bg) — pour qu'une
+   ressource GDD affichée juste en dessous (sa propre barre d'onglets) se
+   fonde avec cette barre du haut au lieu de deux teintes sombres différentes */
+.wiki-topbar{ padding: 14px 28px; background: #26231d; }
+.wiki-topbar-inner{
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+/* boutons/texte de la barre du haut : mêmes teintes brunes que le fond de la
+   barre (voir .wiki-topbar) plutôt que les variables violettes --wiki-panel-2/
+   --wiki-text-dim d'origine — pour rester cohérent une fois ce fond changé */
+.wiki-back-btn{
+  background: #1c1a16;
+  border: 1px solid #423d32;
+  border-radius: 999px;
+  color: #eeeae0;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  text-decoration: none;
+}
+.wiki-back-btn:hover{ border-color: #e0954a; color: #e0954a; }
+.wiki-edit-btn{
+  background: #1c1a16;
+  border: 1px solid #423d32;
+  border-radius: 999px;
+  color: #eeeae0;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  text-decoration: none;
+}
+.wiki-edit-btn:hover{ border-color: #e0954a; color: #e0954a; }
+/* le conteneur absorbe l'espace disponible (pas les boutons individuellement)
+   — reste collé à droite même quand "Contenu des outils" est masqué (aucune
+   ressource "document" liée à ce projet) */
+.wiki-topbar-actions{ display: flex; gap: 8px; margin-left: auto; }
+.wiki-brand{ display: flex; align-items: center; gap: 8px; font-family: var(--wiki-font-display); font-weight: 700; font-size: 14px; letter-spacing: 0.3px; color: #b3ac9c; }
+.wiki-brand-mark{ font-size: 18px; }
+
+.wiki-placeholder{ max-width: 1600px; margin: 60px auto; text-align: center; color: var(--wiki-text-dim); font-size: 14px; }
+
+.wiki-page{
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 12px 28px 80px;
+}
+
+/* Contenu d'une page wiki de projet : une barre d'onglets (une ressource
+   liée = un onglet, le GDD en premier s'il y en a un) au-dessus d'une seule
+   iframe plein écran partagée — cliquer un onglet change juste sa src. Vue
+   unique pour tous les projets (avec ou sans ressource "document" liée),
+   remplace l'ancien résumé compact (grille de cartes + sections détaillées)
+   qui obligeait à quitter la page pour vraiment voir un outil. Position fixed
+   plutôt qu'une chaîne flex:1 imbriquée sur plusieurs niveaux — plus robuste,
+   un seul niveau à calculer (le bas de la barre d'onglets, fixé par JS dans
+   project-wiki.js). */
+.wiki-body.wiki-fullscreen{ overflow: hidden; }
+.wiki-fullscreen .wiki-page{ max-width: none; margin: 0; padding: 0; }
+
+/* même style que la barre d'onglets du GDD (.barre-onglets/.bouton-onglet
+   dans hub/projet/GDD/frontend/style.css, thème sombre) — valeurs reprises
+   telles quelles (--couleur-surface/-bordure/-texte-doux/-fond/-accent) pour
+   que les deux barres se ressemblent vraiment, pas juste "dans le même
+   esprit" */
+.wiki-tabs{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 12px 32px 0;
+  border-bottom: 1px solid #423d32;
+  background: #26231d;
+}
+
+.wiki-tab{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 10px 16px;
+  color: #b3ac9c;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+.wiki-tab:hover{ background: #3a2f20; color: #eeeae0; }
+/* --projet-accent : posée par project-wiki.js (couleur déterministe dérivée
+   du nom du projet, mêmes 8 teintes --swatch-1..8 que les cartes de la page
+   d'accueil — même projet = même couleur aux deux endroits) ; secours sur
+   l'orange du GDD si jamais elle n'est pas encore posée, pour rester le
+   même orange que .bouton-onglet.actif côté GDD par défaut */
+.wiki-tab.actif{
+  background: #1c1a16;
+  border-color: #423d32;
+  color: var(--projet-accent, #e0954a);
+  font-weight: 600;
+  position: relative;
+  top: 1px;
+}
+
+.wiki-tab-icon{ font-size: 15px; line-height: 1; }
+.wiki-tab-text{ display: flex; flex-direction: column; line-height: 1.25; }
+.wiki-tab-sublabel{ font-size: 10.5px; font-weight: 500; color: #8a8272; }
+.wiki-tab.actif .wiki-tab-sublabel{ color: var(--projet-accent, #e0954a); }
+
+/* lien de projet dont la ressource visée a été renommée/supprimée
+   directement dans l'outil (voir lienCasse() dans project-wiki.js) — signalé
+   plutôt que laissé planter silencieusement sur une page cible introuvable */
+.wiki-tab-casse .wiki-tab-label{ color: #e05d4c; }
+.wiki-lien-casse{ color: #e05d4c; max-width: 640px; }
+
+/* rangée secondaire : quand l'onglet actif regroupe plusieurs ressources du
+   même outil (ex. 5 diagrammes FlowMap), bascule entre elles en un clic
+   plutôt que de repasser par la liste propre à l'outil */
+.wiki-subtabs{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 32px;
+  background: #1c1a16;
+  border-bottom: 1px solid #423d32;
+}
+
+.wiki-subtab{
+  display: inline-flex;
+  align-items: center;
+  background: #26231d;
+  border: 1px solid #423d32;
+  border-radius: 999px;
+  padding: 5px 12px;
+  color: #b3ac9c;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.wiki-subtab:hover{ border-color: var(--projet-accent, #e0954a); color: #eeeae0; }
+.wiki-subtab.actif{
+  background: var(--projet-accent, #e0954a);
+  border-color: var(--projet-accent, #e0954a);
+  color: #1c1a16;
+  font-weight: 600;
+}
+.wiki-subtab-all{ margin-left: 4px; color: #8a8272; border-style: dashed; }
+.wiki-subtab-all:hover{ color: #eeeae0; }
+.wiki-subtab-casse{ border-color: #e05d4c; color: #e05d4c; }
+.wiki-subtab-casse:hover{ border-color: #e05d4c; color: #eeeae0; }
+
+.wiki-view-frame{
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  border: none;
+  /* top/height posés explicitement par positionerVuePleinEcran() dans
+     project-wiki.js — pas de bottom:0 ici : une hauteur seulement implicite
+     (dérivée de deux contraintes verticales opposées) peut ne pas s'afficher
+     dans Chrome headless malgré un contenu correctement chargé */
 }
